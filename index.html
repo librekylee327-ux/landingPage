@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>핸드오프</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --page-margin: 60px;   /* 페이지 좌우 마진 */
+    --nav-height: 64px;    /* Figma: GNB height (10px padding + 44px content) */
+    --hero-radius: 30px;   /* Figma: hero corner radius at rest */
+  }
+  html { overflow-x: hidden; }
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #fff;
+    color: #111827;
+  }
+
+  /* ---- GNB: 스크롤 방향에 따라 JS로 opacity 제어 (위로 스크롤=페이드인, 아래로=페이드아웃) ---- */
+  .gnb {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-margin);
+    background: transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 20;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .gnb-logo { display: flex; align-items: center; gap: 8px; }
+  .gnb-logo img:first-child { width: 16px; height: 24px; }
+  .gnb-logo img:last-child { width: 65px; height: 12px; }
+  .gnb-links { display: flex; align-items: center; }
+  .gnb-btn {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.075px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .gnb-btn--ghost { color: #6b7280; }
+  .gnb-btn--solid { background: #111827; color: #fff; border: none; }
+
+  /* ---- 히어로: 스크롤 진행률에 맞춰 margin/radius가 JS로 애니메이션됨 ---- */
+  .scrub-outer {
+    position: relative;
+    height: calc(400vh + 600px); /* 144프레임 스크럽 + 마지막 프레임에서 600px 홀드 */
+  }
+  .scrub-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    background: #fff;
+  }
+  .hero-frame {
+    position: absolute;
+    overflow: hidden;
+    background: #000;
+    /* inset/border-radius는 JS가 스크롤 진행률에 맞춰 매 프레임 갱신 */
+  }
+  .hero-frame canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .scrub-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+  }
+  .hero-title {
+    position: absolute;
+    left: 40px;
+    bottom: 40px;
+    z-index: 5;
+    color: #fff;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.3;
+  }
+
+  /* ---- 스크럽이 끝나갈 때 영상 위에 겹쳐서 페이드인되는 오버레이 ---- */
+  .hero-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /* ---- 재사용 컨테이너: 페이지 마진 안에서 중앙 정렬 ---- */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--page-margin);
+  }
+
+  /* ---- 원초적인 질문 섹션 ---- */
+  .qa-section { padding: 160px 0; background: #ffffff; }
+  .qa-section .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qa-copy { display: flex; flex-direction: column; gap: 20px; max-width: 480px; }
+  .qa-eyebrow {
+    color: #0158fd;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.24px;
+  }
+  .qa-title {
+    color: #111827;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.6px;
+  }
+  .qa-desc {
+    color: #4b5563;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.4px;
+  }
+  .qa-icon {
+    width: 356px;
+    height: 356px;
+    flex-shrink: 0;
+  }
+  .qa-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+</style>
+</head>
+<body>
+
+  <nav class="gnb" id="gnb">
+    <div class="gnb-logo">
+      <img src="assets/nav/bi-icon.svg" alt="">
+      <img src="assets/nav/handoff-wordmark.svg" alt="Handoff">
+    </div>
+    <div class="gnb-links">
+      <a href="#" class="gnb-btn gnb-btn--ghost">About Us</a>
+      <a href="#" class="gnb-btn gnb-btn--solid">Sign Up</a>
+    </div>
+  </nav>
+
+  <section class="scrub-outer" id="scrubOuter">
+    <div class="scrub-sticky">
+      <div class="hero-frame" id="heroFrame">
+        <canvas id="scrubCanvas"></canvas>
+        <div class="hero-title" id="heroTitle">드디어 내 말에 움직이고,<br>내 말로 일하는 AI</div>
+        <canvas class="hero-overlay" id="heroOverlay"></canvas>
+        <div class="scrub-loading" id="scrubLoading">프레임 로딩 중...</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="qa-section">
+    <div class="container">
+      <div class="qa-copy">
+        <p class="qa-eyebrow">원초적인 질문</p>
+        <h2 class="qa-title">AI를 쓰는데 왜!<br>내가 다 알아야해!?</h2>
+        <p class="qa-desc">시키려면 알아야하고, 모르면 배워야하고, 배우면 배울게 또 있다. 결국 내 지식이 천장이고, 아는만큼 나온다면 그게 무슨 인공지능입니까.</p>
+      </div>
+      <div class="qa-icon">
+        <img src="assets/sections/l-help.png" alt="물음표 아이콘">
+      </div>
+    </div>
+  </section>
+
+<script>
+  const FRAME_COUNT = 144;
+  const frameSrc = (i) => `assets/frames/frame_${String(i).padStart(3, '0')}.webp`;
+  const OVERLAY_FRAME_COUNT = 54;
+  const overlayFrameSrc = (i) => `assets/frames2/frame_${String(i).padStart(3, '0')}.webp`;
+
+  const scrubOuter = document.getElementById('scrubOuter');
+  const heroFrame = document.getElementById('heroFrame');
+  const gnb = document.getElementById('gnb');
+  const heroTitle = document.getElementById('heroTitle');
+  const canvas = document.getElementById('scrubCanvas');
+  const loadingEl = document.getElementById('scrubLoading');
+  const heroOverlay = document.getElementById('heroOverlay');
+
+  // object-fit: cover와 동일한 계산으로 프레임 시퀀스를 캔버스에 스크럽 재생
+  // start()를 호출하기 전까진 요청을 보내지 않음 — 오버레이는 히어로 로딩이 끝난 뒤에만 불러와 초기 로드와 대역폭을 다투지 않게 함
+  function createScrubber(canvasEl, count, srcFn) {
+    const ctx = canvasEl.getContext('2d');
+    const imgs = [];
+    let started = false;
+    function start(onAllLoaded) {
+      if (started) return;
+      started = true;
+      let loadedCount = 0;
+      for (let i = 1; i <= count; i++) {
+        const img = new Image();
+        img.onload = () => {
+          loadedCount++;
+          if (i === 1) draw(1); // 첫 프레임 도착하면 바로 보여주기
+          if (loadedCount === count && onAllLoaded) onAllLoaded();
+        };
+        img.src = srcFn(i);
+        imgs.push(img);
+      }
+    }
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvasEl.getBoundingClientRect();
+      canvasEl.width = rect.width * dpr;
+      canvasEl.height = rect.height * dpr;
+    }
+    function draw(index) {
+      const img = imgs[index - 1];
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+      const cw = canvasEl.width, ch = canvasEl.height;
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const scale = Math.max(cw / iw, ch / ih);
+      const dw = iw * scale, dh = ih * scale;
+      const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, dx, dy, dw, dh);
+    }
+    return { start, resize, draw };
+  }
+
+  const hero = createScrubber(canvas, FRAME_COUNT, frameSrc);
+  const overlay = createScrubber(heroOverlay, OVERLAY_FRAME_COUNT, overlayFrameSrc);
+  hero.start(() => {
+    loadingEl.style.display = 'none';
+    overlay.start();
+  });
+
+  let current = 0;
+  let target = 0;
+
+  const HOLD_PX = 600; // 마지막 프레임 도달 후 다음 섹션으로 넘어가기 전 붙잡아두는 여유 스크롤량
+
+  function getProgress() {
+    const rect = scrubOuter.getBoundingClientRect();
+    const scrollable = rect.height - window.innerHeight - HOLD_PX;
+    return Math.min(1, Math.max(0, -rect.top / scrollable));
+  }
+
+  let lastScrollY = window.scrollY;
+  let gnbVisible = true;
+  const SCROLL_DIR_THRESHOLD = 4; // 작은 흔들림 무시
+
+  function setGnbVisible(visible) {
+    if (gnbVisible === visible) return;
+    gnbVisible = visible;
+    gnb.style.opacity = visible ? '1' : '0';
+    gnb.style.transform = visible ? 'translateY(0)' : 'translateY(-16px)';
+    gnb.style.pointerEvents = visible ? 'auto' : 'none';
+  }
+
+  function onScroll() {
+    target = getProgress();
+    const y = window.scrollY;
+    const delta = y - lastScrollY;
+    if (y < 10) {
+      setGnbVisible(true);
+    } else if (delta > 0) {
+      setGnbVisible(false); // 아래로 스크롤 = 지연 없이 바로 숨김
+    } else if (delta < -SCROLL_DIR_THRESHOLD) {
+      setGnbVisible(true); // 위로 스크롤 = 흔들림 무시하고 보임
+    }
+    lastScrollY = y;
+  }
+
+  // 실제 scroll 이벤트는 브라우저가 프레임 단위로 지연시켜 발생시키므로,
+  // 최초 반응 속도를 위해 wheel/touch 입력 시점에 미리 방향을 감지해 gnb를 뺀다
+  window.addEventListener('wheel', (e) => {
+    if (window.scrollY < 10) return;
+    if (e.deltaY > 0) setGnbVisible(false);
+    else if (e.deltaY < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
+  }, { passive: true });
+
+  let touchStartY = 0;
+  window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (window.scrollY < 10) return;
+    const dy = touchStartY - e.touches[0].clientY; // 양수 = 아래로 스크롤
+    if (dy > 0) setGnbVisible(false);
+    else if (dy < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  const NAV_H = 64, NAV_GAP = 16, SIDE = 30, BOTTOM = 60, RADIUS = 30;
+  // 마진/라운드는 스크롤 극초반(6%)에서만 빠르게 0으로 스냅 — 그 이후는 프레임 스크럽에만 반응
+  const LAYOUT_RANGE = 0.06;
+  // 오버레이 영상은 스크롤 마지막 구간(80%~100%)에서 페이드인되며 자체 프레임을 스크럽
+  const OVERLAY_START = 0.85;
+
+  function updateLayout(progress) {
+    heroOverlay.style.opacity = easeOutCubic(Math.min(1, Math.max(0, (progress - OVERLAY_START) / (1 - OVERLAY_START))));
+    const t = easeOutCubic(Math.min(1, progress / LAYOUT_RANGE));
+    const top = lerp(NAV_H + NAV_GAP, 0, t);
+    const side = lerp(SIDE, 0, t);
+    const bottom = lerp(BOTTOM, 0, t);
+    const radius = lerp(RADIUS, 0, t);
+    heroFrame.style.top = top + 'px';
+    heroFrame.style.left = side + 'px';
+    heroFrame.style.right = side + 'px';
+    heroFrame.style.bottom = bottom + 'px';
+    heroFrame.style.borderRadius = radius + 'px';
+    heroTitle.style.opacity = 1 - t;
+  }
+
+  function overlayFrameIndex() {
+    const t = Math.min(1, Math.max(0, (current - OVERLAY_START) / (1 - OVERLAY_START)));
+    return Math.min(OVERLAY_FRAME_COUNT, Math.max(1, Math.round(t * (OVERLAY_FRAME_COUNT - 1)) + 1));
+  }
+
+  function raf() {
+    current += (target - current) * 0.15;
+    updateLayout(target); // hero-frame 크기가 바뀌므로 그리기 전에 캔버스 버퍼도 갱신
+    hero.resize();
+    hero.draw(Math.min(FRAME_COUNT, Math.max(1, Math.round(current * (FRAME_COUNT - 1)) + 1)));
+    overlay.resize();
+    overlay.draw(overlayFrameIndex());
+    requestAnimationFrame(raf);
+  }
+
+  window.addEventListener('resize', () => {
+    hero.resize();
+    hero.draw(Math.round(current * (FRAME_COUNT - 1)) + 1);
+    overlay.resize();
+    overlay.draw(overlayFrameIndex());
+  }, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  hero.resize();
+  overlay.resize();
+  onScroll();
+  updateLayout(target);
+  requestAnimationFrame(raf);
+</script>
+
+</body>
+</html>
