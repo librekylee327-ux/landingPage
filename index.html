@@ -197,6 +197,26 @@
   .footer-logo img:last-child { width: 57px; height: 10.6px; }
   .footer-copy { color: #9ca3af; font-size: 13px; letter-spacing: 0.2px; }
 
+  /* ---- 모바일 대응 ---- */
+  @media (max-width: 768px) {
+    :root { --page-margin: 20px; }
+    .gnb-btn { padding: 8px 16px; font-size: 13px; }
+    .gnb-logo img:first-child { width: 13px; height: 20px; }
+    .gnb-logo img:last-child { width: 54px; height: 10px; }
+    .hero-title { left: 20px; bottom: 24px; font-size: 24px; }
+    /* 스크롤 스크럽 인터랙션 없이 문서 흐름에 놓인 고정 카드(4:3)로만 노출 — JS 인셋 계산 대신 CSS로 처리 */
+    .scrub-outer { height: auto; }
+    .scrub-sticky { position: static; height: auto; padding: calc(var(--nav-height) + 16px) 10px 40px; background: #fff; }
+    .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
+    .qa-section { padding: 40px 0; }
+    .qa-section .container { flex-direction: column; gap: 0; text-align: center; }
+    .qa-copy { align-items: center; max-width: 100%; }
+    .qa-title { font-size: 32px; }
+    .qa-desc { font-size: 15px; }
+    .qa-icon { display: none; }
+    .footer .container { justify-content: center; text-align: center; }
+  }
+
 </style>
 </head>
 <body>
@@ -321,11 +341,15 @@
     return { start, resize, draw };
   }
 
+  const MOBILE = window.innerWidth <= 768; // 모바일은 스크롤 스크럽 없이 고정 카드로만 노출
+  // MOBILE은 로드 시점에 한 번만 고정되므로, 리사이즈로 768px 경계를 넘으면 재판정하도록 새로고침
+  window.matchMedia('(max-width: 768px)').addEventListener('change', () => location.reload());
+
   const hero = createScrubber(canvas, FRAME_COUNT, frameSrc);
   const overlay = createScrubber(heroOverlay, OVERLAY_FRAME_COUNT, overlayFrameSrc);
   hero.start(() => {
     loadingEl.style.display = 'none';
-    overlay.start();
+    if (!MOBILE) overlay.start();
   });
 
   let current = 0;
@@ -379,23 +403,25 @@
 
   // 실제 scroll 이벤트는 브라우저가 프레임 단위로 지연시켜 발생시키므로,
   // 최초 반응 속도를 위해 wheel/touch 입력 시점에 미리 방향을 감지해 gnb를 뺀다
-  window.addEventListener('wheel', (e) => {
-    if (window.scrollY < 10) return;
-    if (e.deltaY > 0) setGnbVisible(false);
-    else if (e.deltaY < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
-  }, { passive: true });
+  if (!MOBILE) {
+    window.addEventListener('wheel', (e) => {
+      if (window.scrollY < 10) return;
+      if (e.deltaY > 0) setGnbVisible(false);
+      else if (e.deltaY < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
+    }, { passive: true });
 
-  let touchStartY = 0;
-  window.addEventListener('touchstart', (e) => {
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (window.scrollY < 10) return;
-    const dy = touchStartY - e.touches[0].clientY; // 양수 = 아래로 스크롤
-    if (dy > 0) setGnbVisible(false);
-    else if (dy < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (window.scrollY < 10) return;
+      const dy = touchStartY - e.touches[0].clientY; // 양수 = 아래로 스크롤
+      if (dy > 0) setGnbVisible(false);
+      else if (dy < -SCROLL_DIR_THRESHOLD) setGnbVisible(true);
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+  }
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -441,18 +467,28 @@
     requestAnimationFrame(raf);
   }
 
-  window.addEventListener('resize', () => {
+  if (MOBILE) {
+    // 스크롤 스크럽 없이, CSS aspect-ratio(4:3)로 문서 흐름에 놓인 고정 카드로만 노출
+    window.addEventListener('resize', () => {
+      hero.resize();
+      hero.draw(1);
+    }, { passive: true });
     hero.resize();
-    hero.draw(Math.round(current * (FRAME_COUNT - 1)) + 1);
+    hero.draw(1);
+  } else {
+    window.addEventListener('resize', () => {
+      hero.resize();
+      hero.draw(Math.round(current * (FRAME_COUNT - 1)) + 1);
+      overlay.resize();
+      overlay.draw(overlayFrameIndex());
+    }, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    hero.resize();
     overlay.resize();
-    overlay.draw(overlayFrameIndex());
-  }, { passive: true });
-  window.addEventListener('scroll', onScroll, { passive: true });
-  hero.resize();
-  overlay.resize();
-  onScroll();
-  updateLayout(target);
-  requestAnimationFrame(raf);
+    onScroll();
+    updateLayout(target);
+    requestAnimationFrame(raf);
+  }
 </script>
 
 </body>
