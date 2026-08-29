@@ -82,7 +82,7 @@
   /* ---- 히어로: 스크롤 진행률에 맞춰 margin/radius가 JS로 애니메이션됨 ---- */
   .scrub-outer {
     position: relative;
-    height: calc(400vh + 600px); /* 144프레임 스크럽 + 마지막 프레임에서 600px 홀드 */
+    height: calc(400vh + 1000px); /* 144프레임 스크럽 + 오버레이 재생 600px + 다음 섹션 전 순수 대기 400px */
   }
   .scrub-sticky {
     position: sticky;
@@ -330,12 +330,23 @@
 
   let current = 0;
   let target = 0;
+  let rawCurrent = 0;
+  let rawTarget = 0;
 
-  const HOLD_PX = 600; // 마지막 프레임 도달 후 다음 섹션으로 넘어가기 전 붙잡아두는 여유 스크롤량
+  const HOLD_PX = 600; // 마지막 프레임 도달 후 오버레이(frames2)가 재생되는 홀드 스크롤량
+  const EXTRA_HOLD_PX = 400; // 오버레이 마지막 프레임 이후 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
 
   function getProgress() {
     const rect = scrubOuter.getBoundingClientRect();
-    const scrollable = rect.height - window.innerHeight - HOLD_PX;
+    const scrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
+    return Math.min(1, Math.max(0, -rect.top / scrollable));
+  }
+
+  // HOLD_PX까지 포함한 진행률(EXTRA_HOLD_PX는 제외) — 오버레이가 히어로와 동시에 끝내려고
+  // 서두르지 않고 홀드 구간까지 여유롭게 재생된 뒤, EXTRA_HOLD_PX 동안은 마지막 프레임에 멈춰있음
+  function getRawProgress() {
+    const rect = scrubOuter.getBoundingClientRect();
+    const scrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
     return Math.min(1, Math.max(0, -rect.top / scrollable));
   }
 
@@ -353,6 +364,7 @@
 
   function onScroll() {
     target = getProgress();
+    rawTarget = getRawProgress();
     const y = window.scrollY;
     const delta = y - lastScrollY;
     if (y < 10) {
@@ -410,12 +422,17 @@
   }
 
   function overlayFrameIndex() {
-    const t = Math.min(1, Math.max(0, (current - OVERLAY_START) / (1 - OVERLAY_START)));
+    const rect = scrubOuter.getBoundingClientRect();
+    const mainScrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
+    const rawScrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
+    const rawOverlayStart = OVERLAY_START * (mainScrollable / rawScrollable);
+    const t = Math.min(1, Math.max(0, (rawCurrent - rawOverlayStart) / (1 - rawOverlayStart)));
     return Math.min(OVERLAY_FRAME_COUNT, Math.max(1, Math.round(t * (OVERLAY_FRAME_COUNT - 1)) + 1));
   }
 
   function raf() {
     current += (target - current) * 0.15;
+    rawCurrent += (rawTarget - rawCurrent) * 0.15;
     updateLayout(target); // hero-frame 크기가 바뀌므로 그리기 전에 캔버스 버퍼도 갱신
     hero.resize();
     hero.draw(Math.min(FRAME_COUNT, Math.max(1, Math.round(current * (FRAME_COUNT - 1)) + 1)));
