@@ -392,7 +392,7 @@
   // 마진/라운드는 스크롤 극초반(6%)에서만 빠르게 0으로 스냅 — 그 이후는 프레임 스크럽에만 반응
   const LAYOUT_RANGE = 0.06;
   // 오버레이 영상은 스크롤 마지막 구간(80%~100%)에서 페이드인되며 자체 프레임을 스크럽
-  const OVERLAY_START = 0.9;
+  const OVERLAY_START = 0.87;
 
   function updateLayout(progress) {
     heroOverlay.style.opacity = easeOutCubic(Math.min(1, Math.max(0, (progress - OVERLAY_START) / (1 - OVERLAY_START))));
