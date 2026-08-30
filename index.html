@@ -82,7 +82,7 @@
   /* ---- 히어로: 스크롤 진행률에 맞춰 margin/radius가 JS로 애니메이션됨 ---- */
   .scrub-outer {
     position: relative;
-    height: calc(600vh + 1000px); /* 144프레임 스크럽(스크롤:재생 1:1.5로 완화) + 오버레이 재생 600px + 다음 섹션 전 순수 대기 400px */
+    height: calc(600vh + 1600px); /* 144프레임 스크럽(스크롤:재생 1:1.5로 완화) + 오버레이 재생 1200px + 다음 섹션 전 순수 대기 400px */
   }
   .scrub-sticky {
     position: sticky;
@@ -357,7 +357,7 @@
   let rawCurrent = 0;
   let rawTarget = 0;
 
-  const HOLD_PX = 600; // 마지막 프레임 도달 후 오버레이(frames2)가 재생되는 홀드 스크롤량
+  const HOLD_PX = 1200; // 마지막 프레임 도달 후 오버레이(frames2)가 재생되는 홀드 스크롤량 (재생 시작점이 늦춰진 만큼 예산을 키워 속도 유지)
   const EXTRA_HOLD_PX = 400; // 오버레이 마지막 프레임 이후 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
 
   function getProgress() {
@@ -430,7 +430,7 @@
   // 마진/라운드는 스크롤 극초반(6%)에서만 빠르게 0으로 스냅 — 그 이후는 프레임 스크럽에만 반응
   const LAYOUT_RANGE = 0.06;
   // 오버레이 영상은 스크롤 마지막 구간(80%~100%)에서 페이드인되며 자체 프레임을 스크럽
-  const OVERLAY_START = 0.87;
+  const OVERLAY_START = 0.86;
 
   function updateLayout(progress) {
     heroOverlay.style.opacity = easeOutCubic(Math.min(1, Math.max(0, (progress - OVERLAY_START) / (1 - OVERLAY_START))));
@@ -451,7 +451,7 @@
     const rect = scrubOuter.getBoundingClientRect();
     const mainScrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
     const rawScrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
-    const rawOverlayStart = OVERLAY_START * (mainScrollable / rawScrollable);
+    const rawOverlayStart = mainScrollable / rawScrollable; // 히어로가 끝나 opacity가 완전히 1이 되는 시점부터 프레임 재생 시작 (페이드인 중 앞단 소모 방지)
     const t = Math.min(1, Math.max(0, (rawCurrent - rawOverlayStart) / (1 - rawOverlayStart)));
     return Math.min(OVERLAY_FRAME_COUNT, Math.max(1, Math.round(t * (OVERLAY_FRAME_COUNT - 1)) + 1));
   }
