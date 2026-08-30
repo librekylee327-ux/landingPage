@@ -51,7 +51,8 @@
     text-decoration: none;
     white-space: nowrap;
   }
-  .gnb-btn--ghost { color: #6b7280; }
+  .gnb-btn--ghost { color: #6b7280; transition: color 0.15s ease; }
+  .gnb-btn--ghost.is-on-dark { color: #fff; }
   .gnb-btn--solid { background: #111827; color: #fff; border: none; }
   .gnb-logo { cursor: pointer; }
 
@@ -82,7 +83,7 @@
   /* ---- 히어로: 스크롤 진행률에 맞춰 margin/radius가 JS로 애니메이션됨 ---- */
   .scrub-outer {
     position: relative;
-    height: calc(600vh + 1600px); /* 144프레임 스크럽(스크롤:재생 1:1.5로 완화) + 오버레이 재생 1200px + 다음 섹션 전 순수 대기 400px */
+    height: calc(600vh + 1400px); /* 144프레임 스크럽(스크롤:재생 1:1.5로 완화) + 오버레이 재생 1200px + 다음 섹션 전 순수 대기 200px */
   }
   .scrub-sticky {
     position: sticky;
@@ -135,6 +136,39 @@
     opacity: 0;
     z-index: 3;
     pointer-events: none;
+  }
+
+  /* ---- 히어로 종료 텍스트: 오버레이 재생이 끝나갈 때 JS로 순차 페이드인 ---- */
+  .hero-outro {
+    position: absolute;
+    left: 10.42%;   /* Figma: 150/1440 */
+    top: 25.4%;     /* Figma: 220/866 */
+    width: 22.92%;  /* Figma: 330/1440 */
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: #fff;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  .hero-outro-title {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .hero-outro-line,
+  .hero-outro-desc {
+    opacity: 0;
+    transform: translateY(20px);
+    white-space: nowrap; /* Figma가 의도적으로 나눈 줄바꿈 — 폴백 폰트 폭 차이로 인한 재줄바꿈 방지 */
+  }
+  .hero-outro-desc {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
   }
 
   /* ---- 재사용 컨테이너: 페이지 마진 안에서 중앙 정렬 ---- */
@@ -208,6 +242,7 @@
     .scrub-outer { height: auto; }
     .scrub-sticky { position: static; height: auto; padding: calc(var(--nav-height) + 16px) 10px 40px; background: #fff; }
     .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
+    .hero-outro { display: none; } /* 모바일은 sticky 스크럽/홀드 구간이 없어 트리거할 스크롤 진행률이 없음 */
     .qa-section { padding: 40px 0; }
     .qa-section .container { flex-direction: column; gap: 0; text-align: center; }
     .qa-copy { align-items: center; max-width: 100%; }
@@ -240,6 +275,13 @@
         <canvas id="scrubCanvas"></canvas>
         <div class="hero-title" id="heroTitle">드디어 내 말에 움직이고,<br>내 말로 일하는 AI</div>
         <canvas class="hero-overlay" id="heroOverlay"></canvas>
+        <div class="hero-outro" id="heroOutro">
+          <div class="hero-outro-title">
+            <p class="hero-outro-line" data-outro-index="0">더이상 고민하지 말고</p>
+            <p class="hero-outro-line" data-outro-index="1">마음대로 시작하세요</p>
+          </div>
+          <p class="hero-outro-desc" data-outro-index="2">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
+        </div>
         <div class="scrub-loading" id="scrubLoading">프레임 로딩 중...</div>
       </div>
     </div>
@@ -303,7 +345,7 @@
   // object-fit: cover와 동일한 계산으로 프레임 시퀀스를 캔버스에 스크럽 재생
   // start()를 호출하기 전까진 요청을 보내지 않음 — 오버레이는 히어로 로딩이 끝난 뒤에만 불러와 초기 로드와 대역폭을 다투지 않게 함
   function createScrubber(canvasEl, count, srcFn) {
-    const ctx = canvasEl.getContext('2d');
+    const ctx = canvasEl.getContext('2d', { willReadFrequently: true });
     const imgs = [];
     let started = false;
     function start(onAllLoaded) {
@@ -356,9 +398,11 @@
   let target = 0;
   let rawCurrent = 0;
   let rawTarget = 0;
+  let outroTarget = 0; // 아웃트로 텍스트 트리거용 진행률(0~1)
 
   const HOLD_PX = 1200; // 마지막 프레임 도달 후 오버레이(frames2)가 재생되는 홀드 스크롤량 (재생 시작점이 늦춰진 만큼 예산을 키워 속도 유지)
-  const EXTRA_HOLD_PX = 400; // 오버레이 마지막 프레임 이후 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
+  const EXTRA_HOLD_PX = 200; // 오버레이 마지막 프레임 이후 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
+  const OUTRO_START = 0.9; // 프레임(frames, 144장) 스크럽이 90% 진행된 지점부터 아웃트로 텍스트 시작
 
   function getProgress() {
     const rect = scrubOuter.getBoundingClientRect();
@@ -372,6 +416,18 @@
     const rect = scrubOuter.getBoundingClientRect();
     const scrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
     return Math.min(1, Math.max(0, -rect.top / scrollable));
+  }
+
+  // 시작점은 frames(target) 90% 지점에 고정, 끝점은 frames와 무관하게 오버레이 홀드가 끝나는
+  // 지점(rawProgress=1)으로 늦춰서 스크롤 픽셀 구간으로 직접 정규화
+  function getOutroProgress() {
+    const rect = scrubOuter.getBoundingClientRect();
+    const mainScrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
+    const rawScrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
+    const scrolled = -rect.top;
+    const start = mainScrollable * OUTRO_START;
+    const end = rawScrollable;
+    return Math.min(1, Math.max(0, (scrolled - start) / (end - start)));
   }
 
   let lastScrollY = window.scrollY;
@@ -389,6 +445,7 @@
   function onScroll() {
     target = getProgress();
     rawTarget = getRawProgress();
+    outroTarget = getOutroProgress();
     const y = window.scrollY;
     const delta = y - lastScrollY;
     if (y < 10) {
@@ -456,14 +513,65 @@
     return Math.min(OVERLAY_FRAME_COUNT, Math.max(1, Math.round(t * (OVERLAY_FRAME_COUNT - 1)) + 1));
   }
 
+  // GNB 텍스트로고/텍스트버튼 뒤에 실제로 그려진 캔버스 픽셀 밝기를 읽어 라이트/다크 컬러를 스위칭
+  const wordmarkImg = document.querySelector('.gnb-logo img:last-child');
+  const wordmarkSrc = { light: 'assets/nav/handoff-wordmark.svg', dark: 'assets/nav/handoff-wordmark-white.svg' };
+  const ghostBtn = document.querySelector('.gnb-btn--ghost');
+  const LUM_THRESHOLD = 140;
+
+  function luminanceAt(canvasEl, clientX, clientY) {
+    const rect = canvasEl.getBoundingClientRect();
+    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+      return 255; // 프레임 캔버스 바깥(= 흰 배경 위) — 밝음으로 취급
+    }
+    const dpr = window.devicePixelRatio || 1;
+    const x = Math.min(canvasEl.width - 1, Math.round((clientX - rect.left) * dpr));
+    const y = Math.min(canvasEl.height - 1, Math.round((clientY - rect.top) * dpr));
+    const px = canvasEl.getContext('2d').getImageData(Math.max(0, x), Math.max(0, y), 1, 1).data;
+    return 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2];
+  }
+
+  function bgLuminanceAt(clientX, clientY) {
+    const overlayVisible = parseFloat(heroOverlay.style.opacity || '0') > 0.5;
+    return luminanceAt(overlayVisible ? heroOverlay : canvas, clientX, clientY);
+  }
+
+  function updateGnbContrast() {
+    const wRect = wordmarkImg.getBoundingClientRect();
+    const isDarkForLogo = bgLuminanceAt(wRect.left + wRect.width / 2, wRect.top + wRect.height / 2) < LUM_THRESHOLD;
+    const wantSrc = isDarkForLogo ? wordmarkSrc.dark : wordmarkSrc.light;
+    if (!wordmarkImg.src.endsWith(wantSrc)) wordmarkImg.src = wantSrc;
+
+    const bRect = ghostBtn.getBoundingClientRect();
+    const isDarkForBtn = bgLuminanceAt(bRect.left + bRect.width / 2, bRect.top + bRect.height / 2) < LUM_THRESHOLD;
+    ghostBtn.classList.toggle('is-on-dark', isDarkForBtn);
+  }
+
+  // 아웃트로 텍스트 3개(타이틀 2줄 + 설명)를 순차 페이드인+상승. linear이므로 opacity == localT —
+  // 다음 텍스트는 이전 텍스트 opacity가 60%(=0.6)일 때 시작하도록 STAGGER = DURATION * 0.6
+  const OUTRO_DURATION = 0.3; // 0.5의 60%
+  const OUTRO_STAGGER = OUTRO_DURATION * 0.6;
+  const outroEls = document.querySelectorAll('#heroOutro [data-outro-index]');
+
+  function updateOutro(outroT) {
+    outroEls.forEach((el) => {
+      const i = Number(el.dataset.outroIndex);
+      const localT = Math.min(1, Math.max(0, (outroT - i * OUTRO_STAGGER) / OUTRO_DURATION));
+      el.style.opacity = localT;
+      el.style.transform = `translateY(${(1 - localT) * 20}px)`;
+    });
+  }
+
   function raf() {
     current += (target - current) * 0.15;
     rawCurrent += (rawTarget - rawCurrent) * 0.15;
     updateLayout(target); // hero-frame 크기가 바뀌므로 그리기 전에 캔버스 버퍼도 갱신
+    updateOutro(outroTarget);
     hero.resize();
     hero.draw(Math.min(FRAME_COUNT, Math.max(1, Math.round(current * (FRAME_COUNT - 1)) + 1)));
     overlay.resize();
     overlay.draw(overlayFrameIndex());
+    updateGnbContrast();
     requestAnimationFrame(raf);
   }
 
