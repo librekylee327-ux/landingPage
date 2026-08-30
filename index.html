@@ -107,11 +107,7 @@
   .scrub-loading {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-size: 14px;
+    background: #e2e2e2;
   }
   .hero-title {
     position: absolute;
@@ -171,6 +167,13 @@
     line-height: 1.6;
   }
 
+  /* 1200px 이하부터는 프레임이 좁아져 큰 폰트가 배경과 겹쳐 보임 — 폰트 축소 + 좌측으로 이동 */
+  @media (max-width: 1200px) {
+    .hero-outro { left: 5%; width: 34%; gap: 12px; }
+    .hero-outro-title { font-size: 24px; gap: 4px; }
+    .hero-outro-desc { font-size: 13px; }
+  }
+
   /* ---- 재사용 컨테이너: 페이지 마진 안에서 중앙 정렬 ---- */
   .container {
     max-width: 1200px;
@@ -195,16 +198,23 @@
   }
   .qa-title {
     color: #111827;
-    font-size: 48px;
+    font-size: 40px;
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: -0.6px;
   }
+
   .qa-desc {
     color: #4b5563;
     font-size: 16px;
     line-height: 1.6;
     letter-spacing: 0.4px;
+  }
+
+  @media (max-width: 1200px) {
+    .qa-eyebrow { font-size: 16px; }
+    .qa-title { font-size: 24px; }
+    .qa-desc { font-size: 13px; }
   }
   .qa-icon {
     width: 356px;
@@ -246,8 +256,6 @@
     .qa-section { padding: 40px 0; }
     .qa-section .container { flex-direction: column; gap: 0; text-align: center; }
     .qa-copy { align-items: center; max-width: 100%; }
-    .qa-title { font-size: 32px; }
-    .qa-desc { font-size: 15px; }
     .qa-icon { display: none; }
     .footer .container { justify-content: center; text-align: center; }
   }
@@ -282,7 +290,7 @@
           </div>
           <p class="hero-outro-desc" data-outro-index="2">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
         </div>
-        <div class="scrub-loading" id="scrubLoading">프레임 로딩 중...</div>
+        <div class="scrub-loading" id="scrubLoading"></div>
       </div>
     </div>
   </section>
