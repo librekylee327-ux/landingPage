@@ -214,10 +214,12 @@
   .col-12 { grid-column: span 12; }
 
   /* ---- 원초적인 질문 섹션 ---- */
-  .qa-section { padding: 60px 0; background: #ffffff; }
+  .qa-section { padding: 200px 0; background: #ffffff; }
   .qa-section .grid { align-items: center; }
   .qa-copy { display: flex; flex-direction: column; gap: 20px; }
   .qa-title {
+    display: flex;
+    flex-direction: column;
     color: #111827;
     font-size: 40px;
     font-weight: 700;
@@ -247,8 +249,17 @@
     height: 100%;
   }
 
+  /* ---- 스크롤 페이드인: hero-outro와 동일하게 스크롤 위치에 직접 연동, <br>로 나뉘던 줄은 순차(스태거)로 ---- */
+  .reveal-line {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-line { opacity: 1; transform: none; }
+  }
+
   /* ---- 푸터: 미니멀 ---- */
-  .footer { padding: 48px 0; }
+  .footer { border-top: 1px solid #e5e7eb; padding: 48px 0; }
   .footer .grid { align-items: center; }
   .footer-logo { display: flex; flex-direction: column; gap: 8px; justify-self: start; }
   .footer-logo-row { display: flex; align-items: center; gap: 8px; opacity: 0.7; cursor: pointer; }
@@ -308,7 +319,7 @@
     </div>
     <div class="gnb-links col-6">
       <a href="#" class="gnb-btn gnb-btn--ghost js-gnb-action" data-toast="준비중입니다">About Us</a>
-      <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Sign Up</a>
+      <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Start</a>
     </div>
   </nav>
 
@@ -336,8 +347,11 @@
     <div class="grid">
       <div class="qa-spacer col-2" aria-hidden="true"></div>
       <div class="qa-copy col-4">
-        <h2 class="qa-title">하고 싶은 걸 편한 말로,<br> 한 번만 말씀해 주세요.</h2>
-        <p class="qa-desc">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">하고 싶은 걸 편한 말로,</span>
+          <span class="reveal-line" data-reveal-index="1">한 번만 말씀해 주세요.</span>
+        </h2>
+        <p class="qa-desc reveal-line" data-reveal-index="2">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
       </div>
       <div class="qa-icon col-5"></div>
     </div>
@@ -347,11 +361,29 @@
     <div class="grid">
       <div class="qa-spacer col-6" aria-hidden="true"></div>
       <div class="qa-copy col-4">
-        <h2 class="qa-title"> 왜 이런지 내 말로 듣고,<br>결정하며 만들어요.</h2>
-        <p class="qa-desc">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">왜 이런지 내 말로 듣고,</span>
+          <span class="reveal-line" data-reveal-index="1">결정하며 만들어요.</span>
+        </h2>
+        <p class="qa-desc reveal-line" data-reveal-index="2">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
       </div>
     </div>
   </section>
+
+  <section class="qa-section">
+    <div class="grid">
+      <div class="qa-spacer col-2" aria-hidden="true"></div>
+      <div class="qa-copy col-4">
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">프로젝트가 끝나도,</span>
+          <span class="reveal-line" data-reveal-index="1">팀은 멈추지 않습니다.</span>
+        </h2>
+        <p class="qa-desc reveal-line" data-reveal-index="2">완성된 산출물을 사용하고 확장할때도 언제나 함꼐합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <div style="height: 400px;" aria-hidden="true"></div>
 
   <footer class="footer">
     <div class="grid">
@@ -369,7 +401,7 @@
             <p>문의: librekylee327@gmail.com</p>
           </div>
           <div class="footer-contact-group">
-            <span class="footer-contacts-label">Contacts:</span>
+            <span class="footer-contacts-label"></span>
             <a href="https://linkedin.com/in/jaekyolee" class="footer-linkedin" target="_blank" rel="noopener">LinkedIn</a>
             <a href="https://www.instagram.com/handoff.kr?igsi=MWh2dmlnMm03eGpkbg%3D%3D&utm_source=qr" class="footer-linkedin" target="_blank" rel="noopener">Instagram</a>
           </div>
@@ -398,6 +430,41 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
+
+  // 아웃트로 텍스트처럼 스크롤 위치에 직접 연동된 페이드인. scroll 이벤트만 쓰면 관성 스크롤 중
+  // 프레임이 스킵되면서 애니메이션이 통째로 건너뛰어 "이미 끝난 상태"로 보임 — rAF + lerp로 매 프레임
+  // 부드럽게 목표치를 따라가게 해서 스크롤이 아무리 빨라도 항상 중간 프레임이 그려지게 함.
+  // <br>로 나뉘던 줄(reveal-line)은 그룹(.qa-copy) 진행률을 공유하며 순차적으로 올라옴 (duration 50% 중첩)
+  const REVEAL_DURATION = 0.5;
+  const REVEAL_STAGGER = REVEAL_DURATION * 0.5;
+  const revealGroups = Array.from(document.querySelectorAll('.qa-copy')).map((group) => ({
+    group,
+    lines: group.querySelectorAll('.reveal-line'),
+    current: 0,
+  }));
+
+  function revealTarget(group) {
+    const rect = group.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const start = vh;        // 뷰포트 하단에 걸리는 순간부터
+    const end = vh * 0.35;   // 화면 위쪽 35% 지점에서 완료
+    return Math.min(1, Math.max(0, (start - rect.top) / (start - end)));
+  }
+
+  function revealLoop() {
+    revealGroups.forEach((state) => {
+      const target = revealTarget(state.group);
+      state.current += (target - state.current) * 0.15;
+      state.lines.forEach((el) => {
+        const i = Number(el.dataset.revealIndex);
+        const localT = Math.min(1, Math.max(0, (state.current - i * REVEAL_STAGGER) / REVEAL_DURATION));
+        el.style.opacity = localT;
+        el.style.transform = `translateY(${(1 - localT) * 24}px)`;
+      });
+    });
+    requestAnimationFrame(revealLoop);
+  }
+  requestAnimationFrame(revealLoop);
 
   let toastTimer;
   document.querySelectorAll('.js-gnb-action').forEach((el) => {
