@@ -20,12 +20,16 @@
     --page-margin: 60px;   /* 페이지 좌우 마진 */
     --nav-height: 64px;    /* Figma: GNB height (10px padding + 44px content) */
     --hero-radius: 30px;   /* Figma: hero corner radius at rest */
+    --grid-columns: 12;
+    --grid-gutter: 24px;
   }
   html { overflow-x: hidden; }
   body {
     font-family: 'Pretendard', -apple-system, sans-serif;
     background: #fff;
     color: #111827;
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   /* ---- GNB: 스크롤 방향에 따라 JS로 opacity 제어 (위로 스크롤=페이드인, 아래로=페이드아웃) ---- */
@@ -33,9 +37,10 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     height: var(--nav-height);
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    gap: var(--grid-gutter);
     align-items: center;
-    justify-content: space-between;
     padding: 0 var(--page-margin);
     background: transparent;
     backdrop-filter: blur(8px);
@@ -43,10 +48,10 @@
     z-index: 20;
     transition: opacity 0.3s ease, transform 0.3s ease;
   }
-  .gnb-logo { display: flex; align-items: center; gap: 8px; }
+  .gnb-logo { display: flex; align-items: center; gap: 8px; justify-self: start; }
   .gnb-logo img:first-child { width: 16px; height: 24px; }
   .gnb-logo img:last-child { width: 65px; height: 12px; }
-  .gnb-links { display: flex; align-items: center; }
+  .gnb-links { display: flex; align-items: center; justify-self: end; }
   .gnb-btn {
     height: 44px;
     display: flex;
@@ -185,26 +190,33 @@
 
   /* ---- 재사용 컨테이너: 페이지 마진 안에서 중앙 정렬 ---- */
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 0 var(--page-margin);
   }
 
+  /* ---- 12컬럼 그리드: 새 섹션은 .grid 안에 .col-1~.col-12로 배치 ---- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    gap: var(--grid-gutter);
+    padding: 0 var(--page-margin);
+  }
+  .col-1  { grid-column: span 1; }
+  .col-2  { grid-column: span 2; }
+  .col-3  { grid-column: span 3; }
+  .col-4  { grid-column: span 4; }
+  .col-5  { grid-column: span 5; }
+  .col-6  { grid-column: span 6; }
+  .col-7  { grid-column: span 7; }
+  .col-8  { grid-column: span 8; }
+  .col-9  { grid-column: span 9; }
+  .col-10 { grid-column: span 10; }
+  .col-11 { grid-column: span 11; }
+  .col-12 { grid-column: span 12; }
+
   /* ---- 원초적인 질문 섹션 ---- */
-  .qa-section { padding: 160px 0; background: #ffffff; }
-  .qa-section .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .qa-copy { display: flex; flex-direction: column; gap: 20px; max-width: 480px; }
-  .qa-eyebrow {
-    color: #0158fd;
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: 0.24px;
-  }
+  .qa-section { padding: 60px 0; background: #ffffff; }
+  .qa-section .grid { align-items: center; }
+  .qa-copy { display: flex; flex-direction: column; gap: 20px; }
   .qa-title {
     color: #111827;
     font-size: 40px;
@@ -221,14 +233,13 @@
   }
 
   @media (max-width: 1200px) {
-    .qa-eyebrow { font-size: 16px; }
     .qa-title { font-size: 24px; }
     .qa-desc { font-size: 13px; }
   }
   .qa-icon {
     width: 356px;
     height: 356px;
-    flex-shrink: 0;
+    justify-self: center;
   }
   .qa-icon img {
     display: block;
@@ -237,22 +248,35 @@
   }
 
   /* ---- 푸터: 미니멀 ---- */
-  .footer { border-top: 1px solid #e5e7eb; padding: 48px 0; }
-  .footer .container {
+  .footer { padding: 48px 0; }
+  .footer .grid { align-items: center; }
+  .footer-logo { display: flex; flex-direction: column; gap: 8px; justify-self: start; }
+  .footer-logo-row { display: flex; align-items: center; gap: 8px; opacity: 0.7; cursor: pointer; }
+  .footer-logo img:first-child { width: 16.8px; height: 25.2px; }
+  .footer-logo img:last-child { width: 68.4px; height: 12.72px; }
+  .footer-copyright { color: #9ca3af; font-size: 10px; letter-spacing: 0.2px; }
+  .footer-copy {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    color: #9ca3af;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    justify-self: end;
   }
-  .footer-logo { display: flex; align-items: center; gap: 8px; opacity: 0.7; cursor: pointer; }
-  .footer-logo img:first-child { width: 14px; height: 21px; }
-  .footer-logo img:last-child { width: 57px; height: 10.6px; }
-  .footer-copy { color: #9ca3af; font-size: 13px; letter-spacing: 0.2px; }
+  .footer-rep-row { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .footer-rep-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .footer-contact-group { display: flex; align-items: center; gap: 10px; }
+  .footer-contacts-label { font-size: 14px; }
+  .footer-rep-info p { font-size: 14px; }
+  .footer-linkedin { font-size: 14px; font-weight: 700; color: inherit; text-decoration: none; }
 
   /* ---- 모바일 대응 ---- */
   @media (max-width: 768px) {
-    :root { --page-margin: 20px; }
+    :root { --page-margin: 20px; --grid-gutter: 16px; }
+    .grid > [class^="col-"],
+    .grid > [class*=" col-"] { grid-column: span 12; }
     .gnb-btn { padding: 8px 16px; font-size: 13px; }
     .gnb-logo img:first-child { width: 13px; height: 20px; }
     .gnb-logo img:last-child { width: 54px; height: 10px; }
@@ -263,10 +287,14 @@
     .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
     .hero-outro { display: none; } /* 모바일은 sticky 스크럽/홀드 구간이 없어 트리거할 스크롤 진행률이 없음 */
     .qa-section { padding: 40px 0; }
-    .qa-section .container { flex-direction: column; gap: 0; text-align: center; }
-    .qa-copy { align-items: center; max-width: 100%; }
+    .qa-section .grid { gap: 0; text-align: center; }
+    .qa-copy { align-items: center; }
     .qa-icon { display: none; }
-    .footer .container { justify-content: center; text-align: center; }
+    .qa-spacer { display: none; }
+    .footer .grid { justify-items: center; text-align: center; }
+    .footer-logo { justify-self: center; align-items: center; }
+    .footer-copy { justify-self: center; align-items: center; }
+    .footer-rep-row { align-items: center; }
   }
 
 </style>
@@ -274,11 +302,11 @@
 <body>
 
   <nav class="gnb" id="gnb">
-    <div class="gnb-logo">
+    <div class="gnb-logo col-6">
       <img src="assets/nav/bi-icon.svg" alt="">
       <img src="assets/nav/handoff-wordmark.svg" alt="Handoff">
     </div>
-    <div class="gnb-links">
+    <div class="gnb-links col-6">
       <a href="#" class="gnb-btn gnb-btn--ghost js-gnb-action" data-toast="준비중입니다">About Us</a>
       <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Sign Up</a>
     </div>
@@ -305,25 +333,48 @@
   </section>
 
   <section class="qa-section">
-    <div class="container">
-      <div class="qa-copy">
-        <p class="qa-eyebrow">원초적인 질문</p>
-        <h2 class="qa-title">AI를 쓰는데 왜!<br>내가 다 알아야해!?</h2>
-        <p class="qa-desc">시키려면 알아야하고, 모르면 배워야하고, 배우면 배울게 또 있다. 결국 내 지식이 천장이고, 아는만큼 나온다면 그게 무슨 인공지능입니까.</p>
+    <div class="grid">
+      <div class="qa-spacer col-2" aria-hidden="true"></div>
+      <div class="qa-copy col-4">
+        <h2 class="qa-title">하고 싶은 걸 편한 말로,<br> 한 번만 말씀해 주세요.</h2>
+        <p class="qa-desc">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
       </div>
-      <div class="qa-icon">
-        <img src="assets/sections/l-help.png" alt="물음표 아이콘">
+      <div class="qa-icon col-5"></div>
+    </div>
+  </section>
+
+  <section class="qa-section">
+    <div class="grid">
+      <div class="qa-spacer col-6" aria-hidden="true"></div>
+      <div class="qa-copy col-4">
+        <h2 class="qa-title"> 왜 이런지 내 말로 듣고,<br>결정하며 만들어요.</h2>
+        <p class="qa-desc">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
       </div>
     </div>
   </section>
 
   <footer class="footer">
-    <div class="container">
-      <div class="footer-logo">
-        <img src="assets/nav/bi-icon.svg" alt="">
-        <img src="assets/nav/handoff-wordmark.svg" alt="Handoff">
+    <div class="grid">
+      <div class="footer-logo col-6">
+        <div class="footer-logo-row">
+          <img src="assets/nav/bi-icon.svg" alt="">
+          <img src="assets/nav/handoff-wordmark.svg" alt="Handoff">
+        </div>
+        <p class="footer-copyright">&copy; 2026 Handoff. All rights reserved.</p>
       </div>
-      <p class="footer-copy">&copy; 2026 Handoff. All rights reserved.</p>
+      <div class="footer-copy col-6">
+        <div class="footer-rep-row">
+          <div class="footer-rep-info">
+            <p>대표자: 이재교</p>
+            <p>문의: librekylee327@gmail.com</p>
+          </div>
+          <div class="footer-contact-group">
+            <span class="footer-contacts-label">Contacts:</span>
+            <a href="https://linkedin.com/in/jaekyolee" class="footer-linkedin" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://www.instagram.com/handoff.kr?igsi=MWh2dmlnMm03eGpkbg%3D%3D&utm_source=qr" class="footer-linkedin" target="_blank" rel="noopener">Instagram</a>
+          </div>
+        </div>
+      </div>
     </div>
   </footer>
 
@@ -342,7 +393,7 @@
   const heroOverlay = document.getElementById('heroOverlay');
   const toast = document.getElementById('toast');
 
-  document.querySelectorAll('.gnb-logo, .footer-logo').forEach((el) => {
+  document.querySelectorAll('.gnb-logo, .footer-logo-row').forEach((el) => {
     el.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
