@@ -18,7 +18,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
     --page-margin: 60px;   /* 페이지 좌우 마진 */
-    --nav-height: 64px;    /* Figma: GNB height (10px padding + 44px content) */
+    --nav-height: 84px;    /* GNB height (20px padding + 44px content) */
     --hero-radius: 30px;   /* Figma: hero corner radius at rest */
     --grid-columns: 12;
     --grid-gutter: 24px;
@@ -41,7 +41,7 @@
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     gap: var(--grid-gutter);
     align-items: center;
-    padding: 0 var(--page-margin);
+    padding: 20px var(--page-margin);
     background: transparent;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -276,12 +276,10 @@
     letter-spacing: 0.2px;
     justify-self: end;
   }
-  .footer-rep-row { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .footer-rep-row { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; font-size: 12px; }
   .footer-rep-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
   .footer-contact-group { display: flex; align-items: center; gap: 10px; }
-  .footer-contacts-label { font-size: 14px; }
-  .footer-rep-info p { font-size: 14px; }
-  .footer-linkedin { font-size: 14px; font-weight: 700; color: inherit; text-decoration: none; }
+  .footer-linkedin { font-weight: 700; color: inherit; text-decoration: none; }
 
   /* ---- 모바일 대응 ---- */
   @media (max-width: 768px) {
@@ -294,7 +292,7 @@
     .hero-title { left: 20px; bottom: 24px; font-size: 24px; }
     /* 스크롤 스크럽 인터랙션 없이 문서 흐름에 놓인 고정 카드(4:3)로만 노출 — JS 인셋 계산 대신 CSS로 처리 */
     .scrub-outer { height: auto; }
-    .scrub-sticky { position: static; height: auto; padding: calc(var(--nav-height) + 16px) 10px 40px; background: #fff; }
+    .scrub-sticky { position: static; height: auto; padding: var(--nav-height) 10px 40px; background: #fff; }
     .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
     .hero-outro { display: none; } /* 모바일은 sticky 스크럽/홀드 구간이 없어 트리거할 스크롤 진행률이 없음 */
     .qa-section { padding: 40px 0; }
@@ -618,7 +616,7 @@
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function lerp(a, b, t) { return a + (b - a) * t; }
 
-  const NAV_H = 64, NAV_GAP = 16, SIDE = 30, BOTTOM = 60, RADIUS = 30;
+  const NAV_H = 84, NAV_GAP = 0, SIDE = 30, BOTTOM = 60, RADIUS = 30;
   // 마진/라운드는 스크롤 극초반(6%)에서만 빠르게 0으로 스냅 — 그 이후는 프레임 스크럽에만 반응
   const LAYOUT_RANGE = 0.06;
   // 오버레이 영상은 스크롤 마지막 구간(80%~100%)에서 페이드인되며 자체 프레임을 스크럽
