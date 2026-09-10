@@ -216,7 +216,7 @@
   /* ---- 카드 3열 섹션: 섹션 안의 모든 reveal 애니메이션이 끝날 때까지 스크롤을 고정(pin)함 ---- */
   .cards-section {
     position: relative;
-    height: calc(100vh + 1000px); /* 500px 애니메이션 재생 예산 + 500px 순수 대기(hold) 후 핀 해제 */
+    height: calc(100vh + 1900px); /* 1400px 애니메이션 재생 예산 + 500px 순수 대기(hold) 후 핀 해제 */
   }
   .cards-pin-sticky {
     position: sticky;
@@ -534,27 +534,28 @@
 
   // ---- 카드 섹션: 스크롤이 핀되는 동안(cardsPinOuter의 스크롤 예산 내) 카드 → 텍스트 순으로 재생 ----
   const cardsPinOuter = document.getElementById('cardsPinOuter');
-  // 카드는 기본 STAGGER(0.25)보다 훨씬 크게 벌리고 DURATION은 짧게 줘서(0.35) 겹침을 줄이고
-  // 카드 간 등장 시점 차이가 뚜렷이 보이도록 함 (2*0.325 + 0.35 = 1 → 마지막 카드도 정확히 opacity 1까지 도달)
-  const CARDS_DURATION = 0.35;
-  const CARDS_STAGGER = 0.325;
+  // 카드는 기본 STAGGER(0.25)보다 크게 벌려 등장 시점 차이가 뚜렷이 보이도록 함
+  // (2*0.4 + 0.2 = 1 → 마지막 카드도 정확히 opacity 1까지 도달, 카드 창(0~0.75)은 그대로라 텍스트 타이밍엔 영향 없음)
+  const CARDS_DURATION = 0.2;
+  const CARDS_STAGGER = 0.4;
   const cardsPinGroups = [
-    { lines: document.querySelectorAll('.cards-grid .reveal-line'), start: 0, end: 0.6, duration: CARDS_DURATION, stagger: CARDS_STAGGER },
-    { lines: document.querySelectorAll('.cards-cta-grid .reveal-line'), start: 0.45, end: 1 },
+    { lines: document.querySelectorAll('.cards-grid .reveal-line'), start: 0, end: 0.75, duration: CARDS_DURATION, stagger: CARDS_STAGGER },
+    { lines: document.querySelectorAll('.cards-cta-grid .reveal-line'), start: 0.75, end: 1 },
   ];
   let cardsPinCurrent = 0;
 
-  const CARDS_ANIM_PX = 500; // 핀 상태로 애니메이션이 재생되는 스크롤 예산
+  const CARDS_START_DELAY_PX = 0; // 진입 직후 아무 반응 없이 그대로 대기하는 구간(레이턴시)
+  const CARDS_ANIM_PX = 1400; // 핀 상태로 애니메이션이 재생되는 스크롤 예산(카드+텍스트 전체가 이 예산에 비례해 늘어남) — 차분하게 올라오도록 넉넉히 줌
   const CARDS_HOLD_PX = 500; // 애니메이션이 끝난 뒤 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
 
-  // 섹션이 화면 아래에서 올라와 핀이 걸리기 전(진입 구간, vh만큼)부터 핀 구간(CARDS_ANIM_PX)까지를
-  // 하나의 연속된 진행률로 이어서, 카드가 섹션이 잠기기 전부터 이미 올라오고 있도록 함.
-  // CARDS_HOLD_PX 구간은 진행률 계산에서 제외되어 애니메이션 종료 후 순수 스크롤 대기가 됨(모바일은 핀이 없어 무관)
+  // 섹션이 화면 아래에서 올라오는 진입 구간(vh)부터 이미 카운트를 시작해서, 핀이 걸리기 전부터
+  // 카드가 올라오기 시작함. (주의: 진입 구간은 배경도 같이 스크롤되고 핀 이후엔 배경이 고정되므로,
+  // 재생 구간이 그 경계를 넘어가면 경계 앞뒤 카드의 체감 속도가 달라질 수 있음)
   function getCardsPinProgress() {
     const rect = cardsPinOuter.getBoundingClientRect();
     const vh = window.innerHeight;
-    const totalSpan = vh + CARDS_ANIM_PX;
-    return Math.min(1, Math.max(0, (vh - rect.top) / totalSpan));
+    const consumed = Math.max(0, vh - rect.top) - CARDS_START_DELAY_PX;
+    return Math.min(1, Math.max(0, consumed / CARDS_ANIM_PX));
   }
 
   function revealLoop() {
