@@ -216,7 +216,7 @@
   /* ---- 카드 3열 섹션: 섹션 안의 모든 reveal 애니메이션이 끝날 때까지 스크롤을 고정(pin)함 ---- */
   .cards-section {
     position: relative;
-    height: calc(100vh + 1300px); /* JS의 CARDS_ANIM_PX(1000) + CARDS_HOLD_PX(300) 후 핀 해제 */
+    height: calc(100vh + 1120px); /* JS의 CARDS_ANIM_PX(1000) + CARDS_HOLD_PX(120) 후 핀 해제 */
   }
   .cards-pin-sticky {
     position: sticky;
@@ -550,7 +550,7 @@
 
   const CARDS_START_DELAY_PX = 0; // 진입 직후 아무 반응 없이 그대로 대기하는 구간(레이턴시)
   const CARDS_ANIM_PX = 1000; // 핀 상태로 애니메이션이 재생되는 스크롤 예산(카드+텍스트 전체가 이 예산에 비례해 늘어남)
-  const CARDS_HOLD_PX = 300; // 애니메이션이 끝난 뒤 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
+  const CARDS_HOLD_PX = 120; // 애니메이션이 끝난 뒤 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
 
   // 섹션이 화면 아래에서 올라오는 진입 구간(vh)부터 이미 카운트를 시작해서, 핀이 걸리기 전부터
   // 카드가 올라오기 시작함. (주의: 진입 구간은 배경도 같이 스크롤되고 핀 이후엔 배경이 고정되므로,
