@@ -68,6 +68,11 @@
   .gnb-btn--ghost { color: #6b7280; transition: color 0.15s ease; }
   .gnb-btn--ghost.is-on-dark { color: #fff; }
   .gnb-btn--solid { background: #111827; color: #fff; border: none; }
+  .gnb-btn { cursor: pointer; transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease; }
+  .gnb-btn--ghost:hover { color: #111827; }
+  .gnb-btn--ghost.is-on-dark:hover { color: rgba(255, 255, 255, 0.7); }
+  .gnb-btn--solid:hover { background: #374151; }
+  .gnb-btn:active { transform: scale(0.97); }
   .gnb-logo { cursor: pointer; }
 
   /* ---- 토스트: 리퀴드 글래스 ---- */
@@ -398,8 +403,101 @@
     .reveal-line { opacity: 1; transform: none; }
   }
 
+  /* ---- 가격 섹션: 헤더는 가운데 정렬, 카드는 카드 섹션과 같은 2~11번 컬럼 3등분 ---- */
+  .pricing-section { padding: 120px 0; background: #fff; }
+  .pricing-head { grid-column: 2 / 12; align-items: center; text-align: center; }
+  .pricing-head .qa-title { align-items: center; }
+  /* 문장 중간에서 줄이 끊기지 않도록 — 줄바꿈은 <br>로만 (좁은 화면에선 풀어서 잘림 방지) */
+  .pricing-head .qa-desc { max-width: none; }
+  @media (min-width: 1001px) { .pricing-head .qa-desc { white-space: nowrap; } }
+  .pricing-row {
+    grid-column: 2 / 12;
+    display: grid;
+    /* 플랜 2개 — 폭이 과하게 넓어지지 않게 상한을 두고 가운데 정렬 */
+    grid-template-columns: repeat(2, minmax(0, 400px));
+    justify-content: center;
+    gap: var(--grid-gutter);
+    align-items: start;
+    margin-top: 56px;
+  }
+  .plan {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 32px 28px;
+    border-radius: 24px;
+    background: #f5f5f7;
+  }
+  .plan--featured { background: #f0efec; }
+  .plan-name { font-size: 15px; font-weight: 600; color: #111827; }
+  .plan-price { display: flex; align-items: baseline; gap: 6px; color: #111827; }
+  .plan-price b { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+  .plan-price span { font-size: 15px; color: #6b7280; }
+  .plan-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .plan-cta--solid { background: #111827; color: #fff; }
+  .plan-cta { cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; }
+  .plan-cta:hover { background: #ebebef; }
+  .plan-cta--solid:hover { background: #374151; }
+  .plan-cta:active { transform: scale(0.97); }
+  .plan-incl { font-size: 14px; font-weight: 600; color: #111827; }
+  .plan-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .plan-list li {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 10px;
+    color: #4b5563;
+    font-size: 15px;
+    line-height: 1.5;
+    letter-spacing: 0.2px;
+  }
+  .plan-list li::before { content: "✓"; color: #9ca3af; }
+  /* 플랜 카드 아래 한 줄 안내 — 카드 폭(2×400 + gutter)에 맞춰 가운데 */
+  .pricing-addon {
+    grid-column: 2 / 12;
+    justify-self: center;
+    max-width: calc(800px + var(--grid-gutter));
+    margin-top: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+  }
+  .pricing-addon b { color: #111827; font-weight: 600; margin-right: 6px; }
+
+  /* ---- 비전 섹션: 페이지를 닫는 한 문장. 어두운 배경 이미지 위 가운데 정렬 ---- */
+  .vision-section {
+    padding: 200px 0;
+    /* 이미지 중앙이 가장 어두워 텍스트가 잘 읽힘 — 가독성 보강용 딤을 한 겹 얹음 */
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), #000 url('assets/sections/vision-bg.jpg') center / cover no-repeat;
+  }
+  .vision-copy { grid-column: 3 / 11; align-items: center; text-align: center; gap: 24px; }
+  .vision-copy .qa-title { align-items: center; color: #fff; }
+  .vision-copy .qa-desc { color: rgba(255, 255, 255, 0.75); }
+  .vision-eyebrow {
+    color: #0158FD;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+  }
+
   /* ---- 푸터: 미니멀 ---- */
-  .footer { border-top: 1px solid #e5e7eb; padding: 48px 0; }
+  /* 위의 비전 섹션(어두운 배경 이미지)과 이어지도록 다크 */
+  .footer { padding: 100px 0; background: #000; }
+  /* 워드마크는 단색 어두운 패스 — 흰색으로 반전. BI 아이콘은 그라디언트라 그대로 둠 */
+  .footer-logo img:last-child { filter: brightness(0) invert(1); }
   .footer .grid { align-items: center; }
   .footer-logo { display: flex; flex-direction: column; gap: 8px; justify-self: start; }
   .footer-logo-row { display: flex; align-items: center; gap: 8px; opacity: 0.7; cursor: pointer; }
@@ -449,6 +547,10 @@
     .step-title { color: #111827; font-size: 20px; cursor: default; }
     .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
     .story-section { padding: 60px 0; }
+    .pricing-section { padding: 60px 0; }
+    .pricing-head, .pricing-row, .pricing-addon { grid-column: 1 / -1; }
+    .pricing-row { display: block; margin-top: 32px; }
+    .plan:not(:last-child) { margin-bottom: 16px; }
     /* col- 클래스가 아니라 grid-column 직접 지정이므로 별도 해제. 모바일 .qa-copy의 가운데 정렬도 되돌림(좌측 정렬 유지) */
     .story-head, .story-body { grid-column: 1 / -1; align-items: stretch; }
     .story-body { margin-top: 28px; }
@@ -591,6 +693,64 @@
     </div>
   </section>
 
+  <section class="pricing-section">
+    <div class="grid">
+      <div class="qa-copy pricing-head">
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">무료로 시작하고,</span>
+          <span class="reveal-line" data-reveal-index="1">필요할 때만 더하세요.</span>
+        </h2>
+        <p class="qa-desc reveal-line" data-reveal-index="2">누구나 무료로 시작할 수 있습니다. 무료 플랜으로 핸드오프를 먼저 경험해 보세요.<br>더 큰 프로젝트와 팀 협업이 필요해질 때 업그레이드하면 됩니다.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="pricing-row">
+        <div class="plan">
+          <p class="plan-name">Free</p>
+          <p class="plan-price"><b>₩0</b></p>
+          <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">무료로 시작하기</a>
+          <p class="plan-incl">Free에 포함된 기능</p>
+          <ul class="plan-list">
+            <li>내 말로 대화하는 프로젝트 1개</li>
+            <li>직무 에이전트와 소통, 결정</li>
+            <li>산출물 배포 및 활용 (3일 동안 활성화)</li>
+            <li>커뮤니티 지원 (예정)</li>
+          </ul>
+        </div>
+        <div class="plan plan--featured">
+          <p class="plan-name">Starter</p>
+          <p class="plan-price"><b>₩29,000</b><span>/월</span></p>
+          <a href="#" class="plan-cta plan-cta--solid js-gnb-action" data-toast="준비중입니다">시작하기</a>
+          <p class="plan-incl">Free의 모든 기능과 함께…</p>
+          <ul class="plan-list">
+            <li>할당 토큰 내에서 프로젝트 무제한 생성</li>
+            <li>히스토리와 맥락을 학습해 나에게 맞는 에이전트 팀으로 성장</li>
+            <li>프로젝트 완료 후에도 산출물 안에서 이어지는 서비스 에이전트 지원</li>
+            <li>산출물 배포·유지보수 비용은 플랜에서 차감</li>
+            <li>커뮤니티 지원 (예정)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="pricing-addon">
+        <b>Add-on ₩20,000부터</b>
+        Starter 플랜에 할당된 토큰을 모두 사용하면, 추가 결제로 토큰을 충전해 그대로 이어서 작업할 수 있습니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="vision-section">
+    <div class="grid">
+      <div class="qa-copy vision-copy">
+        <p class="vision-eyebrow reveal-line" data-reveal-index="0">Our Vision</p>
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="1">남의 직무를 배우지 않아도</span>
+          <span class="reveal-line" data-reveal-index="2">누구나 자기 일을 끝까지 해내는 세상.</span>
+        </h2>
+        <p class="qa-desc reveal-line" data-reveal-index="3">AI는 다룰 줄 아는 소수의 것이 아니라, 무언가를 이루려는 모두의 것이어야 합니다.</p>
+      </div>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="grid">
       <div class="footer-logo col-6">
@@ -610,6 +770,7 @@
             <span class="footer-contacts-label"></span>
             <a href="https://linkedin.com/in/jaekyolee" class="footer-linkedin" target="_blank" rel="noopener">LinkedIn</a>
             <a href="https://www.instagram.com/handoff.kr?igsi=MWh2dmlnMm03eGpkbg%3D%3D&utm_source=qr" class="footer-linkedin" target="_blank" rel="noopener">Instagram</a>
+            <a href="https://youtube.com/@handoff-kr" class="footer-linkedin" target="_blank" rel="noopener">YouTube</a>
           </div>
         </div>
       </div>
