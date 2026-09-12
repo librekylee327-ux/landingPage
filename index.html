@@ -256,9 +256,15 @@
   .cards-cta-grid .qa-copy { grid-column: 2 / 12; }
   .cards-cta-grid .qa-title span { white-space: nowrap; }
 
-  /* ---- 원초적인 질문 섹션 ---- */
-  .qa-section { padding: 200px 0; background: #ffffff; }
-  .qa-section .grid { align-items: center; }
+  /* ---- 스토리 섹션: 히어로 직후 공감 유도 카피. 좌변을 카드 섹션과 같은 2번 컬럼에 맞춤 ---- */
+  .story-section { padding: 100px 0; background: #ffffff; }
+  .story-section .grid { align-items: start; }
+  /* 2~11번 컬럼을 반반(5컬럼씩): 타이틀 좌측, 본문 우측 */
+  .story-head { grid-column: 2 / 7; }
+  .story-body { grid-column: 7 / 12; }
+  .story-body .qa-desc strong { color: #111827; font-weight: 600; }
+
+  /* ---- 공통 카피 타이포 (스토리 섹션 + 스텝 섹션에서 재사용) ---- */
   .qa-copy { display: flex; flex-direction: column; gap: 20px; }
   .qa-title {
     display: flex;
@@ -281,15 +287,106 @@
     .qa-title { font-size: 24px; }
     .qa-desc { font-size: 13px; }
   }
-  .qa-icon {
-    width: 356px;
-    height: 356px;
-    justify-self: center;
+  /* ---- 스텝 섹션: 스크롤이 핀된 동안 좌측 항목이 열/닫히고 우측 미디어가 전환됨 ---- */
+  /* 높이 = 100vh + 스텝수 × JS의 STEP_PX(700) + 마지막 스텝 후 순수 대기 300px.
+     스텝을 늘리면 여기도 같이 늘려야 함 */
+  .steps-section { position: relative; height: calc(100vh + 2400px); }
+  .steps-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
   }
-  .qa-icon img {
-    display: block;
+  .steps-sticky .grid { align-items: center; }
+  .steps-list { grid-column: 2 / 7; }
+  .step-item { padding: 24px 0; border-bottom: 1px solid #e5e7eb; }
+  .step-item:first-child { padding-top: 0; }
+  .step-item:last-child { border-bottom: 0; }
+  /* button인 이유: 클릭으로 열 수 있어야 하니 키보드 포커스/엔터가 공짜로 따라오는 네이티브 요소를 씀 */
+  .step-title {
     width: 100%;
-    height: 100%;
+    background: none;
+    border: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.4px;
+    transition: color 0.4s ease;
+  }
+  .step-item.is-active .step-title { color: #111827; }
+  /* 0fr → 1fr 전환: 내용 높이를 JS로 재지 않고도 열림/닫힘이 애니메이션됨 */
+  .step-desc-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.5s ease, opacity 0.35s ease;
+  }
+  .step-desc-wrap > div { overflow: hidden; min-height: 0; }
+  .step-item.is-active .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
+  .step-desc { padding-top: 12px; color: #4b5563; font-size: 16px; line-height: 1.6; letter-spacing: 0.4px; }
+
+  .steps-media {
+    grid-column: 7 / 12; /* 7~11번 컬럼 */
+    position: relative;
+    aspect-ratio: 16 / 9; /* 스텝 영상 원본(3420×1906)과 동일 — 4:3이면 좌우가 잘림 */
+    border-radius: 24px;
+    background: #f7fafb; /* 스텝 영상 배경색과 동일 — contain 레터박스가 이어 붙어 보이도록 */
+    overflow: hidden;
+  }
+  .step-media {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .step-media.is-active { opacity: 1; }
+  .step-media img,
+  .step-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* 화면 녹화라 UI가 프레임 가운데 위쪽(가로 33~66%, 세로 10~52%)에만 들어있고 나머지는 빈 여백.
+     1.5배에서 상단 기준(50% 0)으로 잡으면 보이는 범위가 가로 16.7~83.3%, 세로 0~66.7% —
+     비어 있는 아래쪽만 잘리고 UI는 여유를 두고 들어옴 */
+  .step-media video.is-zoomed { transform: scale(1.5); transform-origin: 50% 0; }
+  /* 패널(16:9)보다 정방형에 가까운 원본 — cover면 상하가 잘려 툴바/입력창이 사라짐.
+     영상 배경이 패널 배경과 같은 톤이라 좌우 레터박스는 눈에 띄지 않음 */
+  .step-media video.is-contain { object-fit: contain; }
+  /* 원본 우측 끝 28px에 녹화된 창 테두리(어두운 띠)가 있음. 원본이 16:9보다 살짝 넓어(1.798 vs 1.778)
+     cover가 가로로 39px을 잘라내는데, 기본값이면 좌우로 나눠 잘려 우측에 9px이 남음.
+     크롭을 오른쪽으로 몰아서(object-position: left) 28px을 전부 걷어냄 */
+  .step-media video.is-trim-right { object-position: left; }
+
+  /* 미디어 미제공 스텝: 더미 이미지 대신 스켈레톤 */
+  .step-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 32px;
+  }
+  .step-skeleton span {
+    border-radius: 8px;
+    background: #e9edf3;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+  .step-skeleton span:nth-child(1) { width: 40%; height: 20px; }
+  .step-skeleton span:nth-child(2) { flex: 1; border-radius: 16px; }
+  .step-skeleton span:nth-child(3) { width: 70%; height: 14px; }
+  .step-skeleton span:nth-child(4) { width: 45%; height: 14px; }
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .step-desc-wrap, .step-media, .step-title { transition: none; }
+    .step-skeleton span { animation: none; }
   }
 
   /* ---- 스크롤 페이드인: hero-outro와 동일하게 스크롤 위치에 직접 연동, <br>로 나뉘던 줄은 순차(스태거)로 ---- */
@@ -344,11 +441,18 @@
     .cards-row { display: block; } /* 한 장씩 세로로 — 간격은 card-item 마진으로 */
     .cards-cta-grid { margin-bottom: 40px; }
     .card-item:not(:last-child) { margin-bottom: 40px; }
-    .qa-section { padding: 40px 0; }
-    .qa-section .grid { gap: 0; text-align: center; }
+    /* 스텝 섹션은 모바일에서 핀 없이 전체 펼침 — 미디어는 숨기고 항목을 모두 열어둠 */
+    .steps-section { height: auto; padding: 60px 0; }
+    .steps-sticky { position: static; height: auto; display: block; overflow: visible; }
+    .steps-list { grid-column: 1 / -1; }
+    .steps-media { display: none; }
+    .step-title { color: #111827; font-size: 20px; cursor: default; }
+    .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
+    .story-section { padding: 60px 0; }
+    /* col- 클래스가 아니라 grid-column 직접 지정이므로 별도 해제. 모바일 .qa-copy의 가운데 정렬도 되돌림(좌측 정렬 유지) */
+    .story-head, .story-body { grid-column: 1 / -1; align-items: stretch; }
+    .story-body { margin-top: 28px; }
     .qa-copy { align-items: center; }
-    .qa-icon { display: none; }
-    .qa-spacer { display: none; }
     .footer .grid { justify-items: center; text-align: center; }
     .footer-logo { justify-self: center; align-items: center; }
     .footer-copy { justify-self: center; align-items: center; }
@@ -386,6 +490,22 @@
           <p class="hero-outro-desc" data-outro-index="2">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
         </div>
         <div class="scrub-loading" id="scrubLoading"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="story-section">
+    <div class="grid">
+      <div class="qa-copy story-head">
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">무엇이든 만들 수 있게 됐는데,</span>
+          <span class="reveal-line" data-reveal-index="1">어느 순간 손이 멈춥니다.</span>
+        </h2>
+      </div>
+      <div class="qa-copy story-body">
+        <p class="qa-desc reveal-line" data-reveal-index="0">“이거 내가 건드리면 안 될 것 같은데.”<br>결과물은 빠르게 쌓이는데, 이해하지 못한 채 쌓인 것도 그만큼 쌓입니다. 그러다 고칠 수도, 무엇이 잘못됐는지 짚어낼 수도 없는 상태가 됩니다.</p>
+        <p class="qa-desc reveal-line" data-reveal-index="1">잘 쓰려면 그 영역을 공부해야 하고, 쓰면 쓸수록 알아야 할 것은 끝없이 늘어납니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서는 스스로를 “문외한”이라고 부릅니다.</p>
+        <p class="qa-desc reveal-line" data-reveal-index="2">문제는 실력이 아닙니다.<br><strong>내 것이 아닌 남의 직무를 먼저 배워야 한다는 전제입니다.</strong></p>
       </div>
     </div>
   </section>
@@ -431,42 +551,42 @@
     </div>
   </section>
 
-  <section class="qa-section">
-    <div class="grid">
-      <div class="qa-spacer col-2" aria-hidden="true"></div>
-      <div class="qa-copy col-4">
-        <h2 class="qa-title">
-          <span class="reveal-line" data-reveal-index="0">하고 싶은 걸 편한 말로,</span>
-          <span class="reveal-line" data-reveal-index="1">한 번만 말씀해 주세요.</span>
-        </h2>
-        <p class="qa-desc reveal-line" data-reveal-index="2">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
-      </div>
-      <div class="qa-icon col-5"></div>
-    </div>
-  </section>
-
-  <section class="qa-section">
-    <div class="grid">
-      <div class="qa-spacer col-6" aria-hidden="true"></div>
-      <div class="qa-copy col-4">
-        <h2 class="qa-title">
-          <span class="reveal-line" data-reveal-index="0">왜 이런지 내 말로 듣고,</span>
-          <span class="reveal-line" data-reveal-index="1">결정하며 만들어요.</span>
-        </h2>
-        <p class="qa-desc reveal-line" data-reveal-index="2">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="qa-section">
-    <div class="grid">
-      <div class="qa-spacer col-2" aria-hidden="true"></div>
-      <div class="qa-copy col-4">
-        <h2 class="qa-title">
-          <span class="reveal-line" data-reveal-index="0">프로젝트가 끝나도,</span>
-          <span class="reveal-line" data-reveal-index="1">팀은 멈추지 않습니다.</span>
-        </h2>
-        <p class="qa-desc reveal-line" data-reveal-index="2">완성된 산출물을 사용하고 확장할때도 언제나 함꼐합니다.</p>
+  <section class="steps-section" id="stepsOuter">
+    <div class="steps-sticky">
+      <div class="grid">
+        <div class="steps-list">
+          <div class="step-item is-active">
+            <h2><button type="button" class="step-title">하고 싶은 걸 편한 말로, 한 번만</button></h2>
+            <div class="step-desc-wrap"><div>
+              <p class="step-desc">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
+            </div></div>
+          </div>
+          <div class="step-item">
+            <h2><button type="button" class="step-title">왜 이런지 내 말로 듣고, 내 말로 결정</button></h2>
+            <div class="step-desc-wrap"><div>
+              <p class="step-desc">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
+            </div></div>
+          </div>
+          <div class="step-item">
+            <h2><button type="button" class="step-title">프로젝트가 끝나도, 팀은 멈추지 않습니다</button></h2>
+            <div class="step-desc-wrap"><div>
+              <p class="step-desc">완성된 산출물을 사용하고 확장할 때도 언제나 함께합니다.</p>
+            </div></div>
+          </div>
+        </div>
+        <!-- 스텝별 미디어 자리. 자산이 준비되면 해당 .step-media 안의 .step-skeleton을
+             <video src="…" autoplay muted loop playsinline></video> 또는 <img src="…" alt="…"> 로 교체 -->
+        <div class="steps-media">
+          <div class="step-media is-active">
+            <video class="is-zoomed" src="assets/sections/step-01.mp4" muted loop playsinline preload="none"></video>
+          </div>
+          <div class="step-media">
+            <video class="is-contain" src="assets/sections/step-02.mp4" muted loop playsinline preload="none"></video>
+          </div>
+          <div class="step-media">
+            <video class="is-trim-right" src="assets/sections/step-03.mp4" muted loop playsinline preload="none"></video>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -599,6 +719,46 @@
   }
   // 인라인 스타일이 CSS의 prefers-reduced-motion 규칙을 덮어쓰므로, 아예 루프를 돌리지 않아야 CSS 최종 상태가 남음
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(revealLoop);
+
+  // ---- 스텝 섹션: 핀된 동안 스크롤 구간을 스텝 수로 나눠 활성 항목만 열고 우측 미디어를 전환 ----
+  // 값 보간이 아니라 클래스 토글(전환은 CSS transition 담당)이라 rAF 대신 scroll 이벤트로 충분함.
+  // reveal 루프에 얹지 않은 이유: reduced-motion에서 그 루프는 아예 돌지 않아 스텝이 멈춰버림.
+  const stepsOuter = document.getElementById('stepsOuter');
+  const stepItems = document.querySelectorAll('.step-item');
+  const stepMedia = document.querySelectorAll('.step-media');
+  const STEP_PX = 700; // 스텝 하나가 점유하는 스크롤량
+  let stepActive = -1; // -1로 시작해 최초 호출이 항상 반영되도록 (첫 스텝 영상 재생 포함)
+
+  function updateSteps() {
+    const consumed = -stepsOuter.getBoundingClientRect().top;
+    const next = Math.min(stepItems.length - 1, Math.max(0, Math.floor(consumed / STEP_PX)));
+    if (next === stepActive) return;
+    stepActive = next;
+    stepItems.forEach((el, i) => el.classList.toggle('is-active', i === next));
+    stepMedia.forEach((el, i) => {
+      el.classList.toggle('is-active', i === next);
+      // preload="none" + 활성 스텝만 재생 — 보이지도 않는 영상을 미리 내려받지 않게 함
+      const video = el.querySelector('video');
+      if (!video) return;
+      // 활성될 때마다 처음부터 — 이어 재생이면 클릭으로 돌아왔을 때 중간부터 나옴
+      if (i === next) { video.currentTime = 0; video.play().catch(() => {}); } else video.pause();
+    });
+  }
+  window.addEventListener('scroll', updateSteps, { passive: true });
+  window.addEventListener('resize', updateSteps);
+  updateSteps();
+
+  // 클릭으로 바로 열기 — 클래스를 직접 토글하면 다음 scroll 이벤트가 덮어쓰므로,
+  // 스크롤 위치(유일한 상태 소스)를 해당 스텝 구간으로 옮겨서 updateSteps가 알아서 반영하게 함
+  stepItems.forEach((item, i) => {
+    item.addEventListener('click', () => {
+      if (MOBILE) return; // 모바일은 핀이 없고 전부 펼쳐져 있음
+      const sectionTop = stepsOuter.getBoundingClientRect().top + window.scrollY;
+      // 구간 경계가 아니라 가운데(i + 0.5)로 보냄 — 브라우저가 스크롤 위치를 소수점에서 반올림해
+      // 경계보다 몇 분의 1px 모자라게 착지하면 floor가 직전 스텝을 집어버림
+      window.scrollTo({ top: sectionTop + (i + 0.5) * STEP_PX, behavior: 'smooth' });
+    });
+  });
 
   let toastTimer;
   document.querySelectorAll('.js-gnb-action').forEach((el) => {
