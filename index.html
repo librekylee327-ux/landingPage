@@ -525,41 +525,57 @@
     :root { --page-margin: 20px; --grid-gutter: 16px; }
     .grid > [class^="col-"],
     .grid > [class*=" col-"] { grid-column: span 12; }
+    /* 12컬럼 그리드로는 로고/버튼이 트랙보다 넓어져 서로 겹침 — 좌우 양끝 배치로 단순화 */
+    .gnb { display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.72); }
     .gnb-btn { padding: 8px 16px; font-size: 13px; }
+    .gnb-links { gap: 4px; }
     .gnb-logo img:first-child { width: 13px; height: 20px; }
     .gnb-logo img:last-child { width: 54px; height: 10px; }
     .hero-title { left: 20px; bottom: 24px; font-size: 24px; }
     /* 스크롤 스크럽 인터랙션 없이 문서 흐름에 놓인 고정 카드(4:3)로만 노출 — JS 인셋 계산 대신 CSS로 처리 */
     .scrub-outer { height: auto; }
-    .scrub-sticky { position: static; height: auto; padding: var(--nav-height) 10px 40px; background: #fff; }
+    .scrub-sticky { position: static; height: auto; padding: var(--nav-height) var(--page-margin) 56px; background: #fff; }
     .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
     .hero-outro { display: none; } /* 모바일은 sticky 스크럽/홀드 구간이 없어 트리거할 스크롤 진행률이 없음 */
+    /* 데스크톱 본문 폭(13px)은 모바일에서 너무 작음 — 본문 16px 유지 */
+    .qa-title { font-size: 26px; }
+    .qa-desc { font-size: 16px; }
     /* 모바일은 스크롤 핀(scroll-jack) 없이 일반 문서 흐름으로 노출 */
-    .cards-section { height: auto; padding: 40px 0 0; }
+    /* 섹션 세로 리듬: 인접 섹션 패딩 합이 120px 안팎이 되도록 맞춤 */
+    .cards-section { height: auto; padding: 56px 0; }
     .cards-pin-sticky { position: static; height: auto; display: block; }
     .cards-row { display: block; } /* 한 장씩 세로로 — 간격은 card-item 마진으로 */
-    .cards-cta-grid { margin-bottom: 40px; }
-    .card-item:not(:last-child) { margin-bottom: 40px; }
+    .cards-cta-grid { margin-bottom: 48px; }
+    /* nowrap이면 24px 폰트가 375px 화면을 넘어서 잘림 */
+    .cards-cta-grid .qa-title span { white-space: normal; }
+    .card-item:not(:last-child) { margin-bottom: 48px; }
+    .card-body { padding: 0; } /* 폭이 좁아 카드 이미지 좌변과 어긋나 보임 */
     /* 스텝 섹션은 모바일에서 핀 없이 전체 펼침 — 미디어는 숨기고 항목을 모두 열어둠 */
-    .steps-section { height: auto; padding: 60px 0; }
+    .steps-section { height: auto; padding: 64px 0; }
     .steps-sticky { position: static; height: auto; display: block; overflow: visible; }
-    .steps-list { grid-column: 1 / -1; }
     .steps-media { display: none; }
     .step-title { color: #111827; font-size: 20px; cursor: default; }
     .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
-    .story-section { padding: 60px 0; }
-    .pricing-section { padding: 60px 0; }
-    .pricing-head, .pricing-row, .pricing-addon { grid-column: 1 / -1; }
-    .pricing-row { display: block; margin-top: 32px; }
-    .plan:not(:last-child) { margin-bottom: 16px; }
-    /* col- 클래스가 아니라 grid-column 직접 지정이므로 별도 해제. 모바일 .qa-copy의 가운데 정렬도 되돌림(좌측 정렬 유지) */
-    .story-head, .story-body { grid-column: 1 / -1; align-items: stretch; }
-    .story-body { margin-top: 28px; }
-    .qa-copy { align-items: center; }
+    .step-item { padding: 28px 0; }
+    .story-section { padding: 64px 0; }
+    .pricing-section { padding: 64px 0; }
+    .pricing-row { display: block; margin-top: 40px; }
+    .plan:not(:last-child) { margin-bottom: 20px; }
+    .vision-section { padding: 96px 0; }
+    .footer { padding: 64px 0; }
+    /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
+       1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
+    .steps-list,
+    .story-head, .story-body,
+    .cards-row, .cards-cta-grid .qa-copy,
+    .pricing-head, .pricing-row, .pricing-addon,
+    .vision-copy { grid-column: 1 / -1; }
+    .story-body { margin-top: 32px; }
     .footer .grid { justify-items: center; text-align: center; }
     .footer-logo { justify-self: center; align-items: center; }
     .footer-copy { justify-self: center; align-items: center; }
     .footer-rep-row { align-items: center; }
+    .footer-rep-info, .footer-contact-group { justify-content: center; }
   }
 
 </style>
@@ -779,6 +795,10 @@
   </footer>
 
 <script>
+  const MOBILE = window.innerWidth <= 768; // 모바일은 스크롤 스크럽 없이 고정 카드로만 노출
+  // MOBILE은 로드 시점에 한 번만 고정되므로, 리사이즈로 768px 경계를 넘으면 재판정하도록 새로고침
+  window.matchMedia('(max-width: 768px)').addEventListener('change', () => location.reload());
+
   const FRAME_COUNT = 144;
   const frameSrc = (i) => `assets/frames/frame_${String(i).padStart(3, '0')}.webp`;
   const OVERLAY_FRAME_COUNT = 54;
@@ -897,6 +917,7 @@
     if (next === stepActive) return;
     stepActive = next;
     stepItems.forEach((el, i) => el.classList.toggle('is-active', i === next));
+    if (MOBILE) return; // 미디어 패널이 숨겨져 있음 — play()로 mp4를 받게 두면 데이터만 낭비
     stepMedia.forEach((el, i) => {
       el.classList.toggle('is-active', i === next);
       // preload="none" + 활성 스텝만 재생 — 보이지도 않는 영상을 미리 내려받지 않게 함
@@ -974,11 +995,8 @@
     return { start, resize, draw };
   }
 
-  const MOBILE = window.innerWidth <= 768; // 모바일은 스크롤 스크럽 없이 고정 카드로만 노출
-  // MOBILE은 로드 시점에 한 번만 고정되므로, 리사이즈로 768px 경계를 넘으면 재판정하도록 새로고침
-  window.matchMedia('(max-width: 768px)').addEventListener('change', () => location.reload());
-
-  const hero = createScrubber(canvas, FRAME_COUNT, frameSrc);
+  // 모바일은 1번 프레임 한 장만 보여주므로 144장을 내려받지 않음
+  const hero = createScrubber(canvas, MOBILE ? 1 : FRAME_COUNT, frameSrc);
   const overlay = createScrubber(heroOverlay, OVERLAY_FRAME_COUNT, overlayFrameSrc);
   hero.start(() => {
     loadingEl.style.display = 'none';
