@@ -23,7 +23,8 @@
     --grid-columns: 12;
     --grid-gutter: 24px;
   }
-  html { overflow-x: hidden; }
+  /* 바운스(오버스크롤) 시 다크 푸터 아래로 흰 배경이 드러나서 끔 */
+  html { overflow-x: hidden; overscroll-behavior-y: none; }
   body {
     font-family: 'Pretendard', -apple-system, sans-serif;
     background: #fff;
