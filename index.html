@@ -956,6 +956,13 @@
   document.querySelectorAll('.js-gnb-action').forEach((el) => {
     el.addEventListener('click', (e) => {
       e.preventDefault();
+      // 아직 제품이 없으니 이 클릭이 유일한 수요 신호 — 토스트 띄우기 전에 먼저 보낸다
+      if (typeof gtag === 'function') {
+        gtag('event', 'cta_click', {
+          cta_label: el.textContent.trim(),
+          cta_location: el.classList.contains('gnb-btn') ? 'gnb' : 'pricing',
+        });
+      }
       clearTimeout(toastTimer);
       toast.textContent = el.dataset.toast;
       toast.classList.add('show');
