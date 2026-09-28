@@ -30,15 +30,102 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "핸드오프",
-  "alternateName": "Handoff",
-  "url": "https://www.handoff.co.kr/",
-  "logo": "https://www.handoff.co.kr/assets/favicon.png",
-  "description": "하고 싶은 걸 편한 말로 말하면, 무엇이 필요하고 어떻게 만들지는 직무 전문가 팀이 맡아요. 방향이 갈리는 자리는 알아듣는 말로 함께 정해요.",
-  "sameAs": [
-    "https://www.instagram.com/handoff.co.kr",
-    "https://www.youtube.com/@handoff-kr"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.handoff.co.kr/#organization",
+      "name": "핸드오프",
+      "alternateName": "Handoff",
+      "url": "https://www.handoff.co.kr/",
+      "logo": "https://www.handoff.co.kr/assets/favicon.png",
+      "email": "support@handoff.co.kr",
+      "description": "하고 싶은 걸 편한 말로 말하면, 무엇이 필요하고 어떻게 만들지는 직무 전문가 팀이 맡아요. 방향이 갈리는 자리는 알아듣는 말로 함께 정해요.",
+      "sameAs": [
+        "https://www.linkedin.com/company/handoff.co.kr",
+        "https://www.instagram.com/handoff.co.kr",
+        "https://www.youtube.com/@handoff-kr"
+      ]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.handoff.co.kr/#app",
+      "name": "핸드오프",
+      "alternateName": "Handoff",
+      "url": "https://www.handoff.co.kr/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "ko",
+      "description": "핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.",
+      "publisher": {
+        "@id": "https://www.handoff.co.kr/#organization"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "KRW"
+        },
+        {
+          "@type": "Offer",
+          "name": "Starter",
+          "price": "29000",
+          "priceCurrency": "KRW",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "29000",
+            "priceCurrency": "KRW",
+            "billingDuration": "P1M"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.handoff.co.kr/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "핸드오프는 무엇인가요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "AI나 전문 분야를 몰라도 쓸 수 있나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "다른 AI 도구와 무엇이 다른가요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "요금은 얼마인가요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 3일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 할당 토큰 안에서 프로젝트를 제한 없이 만들 수 있습니다. 토큰을 다 쓰면 20,000원부터 추가 충전할 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "언제부터 쓸 수 있나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "2026년 하반기에 출시할 예정입니다."
+          }
+        }
+      ]
+    }
   ]
 }
 </script>
@@ -505,6 +592,38 @@
   }
   .pricing-addon b { color: #111827; font-weight: 600; margin-right: 6px; }
 
+  /* ---- FAQ: 답변은 HTML에 그대로 두고 <details>로 접기만 함 — 검색·AI 수집기가 본문으로 읽음 ---- */
+  .faq-section { padding: 0 0 120px; background: #fff; }
+  .faq-head { grid-column: 2 / 12; align-items: center; text-align: center; }
+  .faq-head .qa-title { align-items: center; }
+  .faq-list {
+    grid-column: 2 / 12;
+    justify-self: center;
+    width: 100%;
+    max-width: calc(800px + var(--grid-gutter));
+    margin-top: 56px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .faq-item { border-bottom: 1px solid #e5e7eb; }
+  .faq-q {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 4px;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.5;
+    list-style: none;
+    cursor: pointer;
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::after { content: "+"; flex: none; color: #9ca3af; font-size: 22px; font-weight: 400; transition: transform 0.2s ease; }
+  .faq-item[open] .faq-q::after { transform: rotate(45deg); }
+  .faq-q:focus-visible { outline: 2px solid #0158FD; outline-offset: 2px; border-radius: 4px; }
+  .faq-a { padding: 0 4px 24px; color: #4b5563; font-size: 15px; line-height: 1.7; letter-spacing: 0.2px; }
+
   /* ---- 비전 섹션: 페이지를 닫는 한 문장. 어두운 배경 이미지 위 가운데 정렬 ---- */
   .vision-section {
     padding: 200px 0;
@@ -589,6 +708,10 @@
     .pricing-section { padding: 64px 0; }
     .pricing-row { display: block; margin-top: 40px; }
     .plan:not(:last-child) { margin-bottom: 20px; }
+    .faq-section { padding: 0 0 64px; }
+    .faq-list { margin-top: 32px; }
+    .faq-q { padding: 20px 0; font-size: 16px; }
+    .faq-a { padding: 0 0 20px; }
     .vision-section { padding: 96px 0; }
     .footer { padding: 64px 0; }
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
@@ -597,6 +720,7 @@
     .story-head, .story-body,
     .cards-row, .cards-cta-grid .qa-copy,
     .pricing-head, .pricing-row, .pricing-addon,
+    .faq-head, .faq-list,
     .vision-copy { grid-column: 1 / -1; }
     .story-body { margin-top: 32px; }
     .footer .grid { justify-items: center; text-align: center; }
@@ -780,6 +904,38 @@
         <b>Add-on ₩20,000부터</b>
         Starter 플랜에 할당된 토큰을 모두 사용하면, 추가 결제로 토큰을 충전해 그대로 이어서 작업할 수 있습니다.
       </p>
+    </div>
+  </section>
+
+  <section class="faq-section" id="faq">
+    <div class="grid">
+      <div class="qa-copy faq-head">
+        <h2 class="qa-title">
+          <span class="reveal-line" data-reveal-index="0">자주 묻는 질문</span>
+        </h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary class="faq-q">핸드오프는 무엇인가요?</summary>
+          <p class="faq-a">핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">AI나 전문 분야를 몰라도 쓸 수 있나요?</summary>
+          <p class="faq-a">네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">다른 AI 도구와 무엇이 다른가요?</summary>
+          <p class="faq-a">핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">요금은 얼마인가요?</summary>
+          <p class="faq-a">Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 3일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 할당 토큰 안에서 프로젝트를 제한 없이 만들 수 있습니다. 토큰을 다 쓰면 20,000원부터 추가 충전할 수 있습니다.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">언제부터 쓸 수 있나요?</summary>
+          <p class="faq-a">2026년 하반기에 출시할 예정입니다.</p>
+        </details>
+      </div>
     </div>
   </section>
 
