@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 본문 폰트. 이 줄이 없으면 맥은 산돌고딕, 윈도우는 맑은 고딕으로 대체돼 Figma와 글자 폭·줄바꿈이 달라진다 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-25VC078MY1"></script>
 <script>
@@ -77,6 +80,18 @@
             "priceCurrency": "KRW",
             "billingDuration": "P1M"
           }
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "59000",
+          "priceCurrency": "KRW",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "59000",
+            "priceCurrency": "KRW",
+            "billingDuration": "P1M"
+          }
         }
       ]
     },
@@ -113,7 +128,7 @@
           "name": "요금은 얼마인가요?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 3일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 할당 토큰 안에서 프로젝트를 제한 없이 만들 수 있습니다. 토큰을 다 쓰면 20,000원부터 추가 충전할 수 있습니다."
+            "text": "Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다."
           }
         },
         {
@@ -157,7 +172,8 @@
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     gap: var(--grid-gutter);
     align-items: center;
-    padding: 20px var(--page-margin);
+    /* 내용 폭 최대 1120px — 바(블러 배경)는 화면 전체 폭, 좌우 여백만 넓어진다 */
+    padding: 20px max(var(--page-margin), calc((100% - 1120px) / 2));
     background: transparent;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -176,7 +192,7 @@
     padding: 10px 30px;
     border-radius: 30px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.075px;
     text-decoration: none;
     white-space: nowrap;
@@ -189,6 +205,13 @@
   .gnb-btn--ghost.is-on-dark:hover { color: rgba(255, 255, 255, 0.7); }
   .gnb-btn--solid:hover { background: #374151; }
   .gnb-btn:active { transform: scale(0.97); }
+  /* 어두운 히어로 위에 있을 때(JS가 .is-on-hero를 붙인다) — 로고는 흰 워드마크로 바꾼다 */
+  .gnb.is-on-hero .gnb-btn--ghost { color: rgba(255, 255, 255, 0.8); }
+  .gnb.is-on-hero .gnb-btn--ghost:hover { color: #fff; }
+  .gnb.is-on-hero .gnb-btn--solid { background: #fff; color: #111827; }
+  .gnb.is-on-hero .gnb-btn--solid:hover { background: #e5e7eb; }
+  /* 처음 랜딩(맨 위)에서는 GNB 뒤를 흐리게·어둡게 하지 않는다 — 천장 조명이 그대로 보이게 */
+  .gnb.is-at-top { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .gnb-logo { cursor: pointer; }
 
   /* ---- 토스트: 리퀴드 글래스 ---- */
@@ -215,103 +238,177 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-  /* ---- 히어로: 스크롤 진행률에 맞춰 margin/radius가 JS로 애니메이션됨 ---- */
-  .scrub-outer {
+  /* ---- 히어로: 첫 스크롤이 감지되면 스크롤을 잠시 잠그고 한 번에 재생한다 —
+     CTA 알약 → 입력창 변신 → 예시 문장 타이핑 → 보내기 버튼 눌림. 끝나면 잠금을 푼다.
+     맨 위에서 위로 스크롤하면 거꾸로 돌아가 알약 버튼이 된다(JS playHeroIntro · rewindHeroIntro) */
+  /* 히어로는 한 화면을 통째로 쓴다 — 다음 섹션이 같이 보이지 않게. 폰은 주소창 높이를 뺀 dvh */
+  .hero-journey { position: relative; height: 100vh; height: 100dvh; background: #040a1c; color: #fff; }
+  .hero-sticky {
     position: relative;
-    height: calc(433.33vh + 1400px); /* 144프레임 스크럽(스크롤:재생 1:1) + 오버레이 재생 1200px + 다음 섹션 전 순수 대기 200px */
-  }
-  .scrub-sticky {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    background: #fff;
-  }
-  .hero-frame {
-    position: absolute;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 제목·설명·CTA 한 덩어리를 가운데보다 조금 위로 — 아래 여백을 120px 더 줘서 덩어리가 60px 올라간다 */
+    padding: var(--nav-height) var(--page-margin) 120px;
     overflow: hidden;
-    background: #000;
-    /* inset/border-radius는 JS가 스크롤 진행률에 맞춰 매 프레임 갱신 */
-  }
-  .hero-frame canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  .scrub-loading {
-    position: absolute;
-    inset: 0;
-    background: #e2e2e2;
-  }
-  .hero-title {
-    position: absolute;
-    left: 40px;
-    bottom: 40px;
-    z-index: 5;
-    color: #fff;
-    font-size: 44px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    line-height: 1.3;
+    --glow: 0;                 /* JS가 입력창 변신 진행률(0~1)로 넣는다 — 변신할수록 조명이 밝아진다 */
   }
 
-  /* ---- 스크럽이 끝나갈 때 영상 위에 겹쳐서 페이드인되는 오버레이 ---- */
-  .hero-overlay {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
+  /* ---- 방: 천창이 열리며 빛이 들어오는 영상(assets/sections/hero-room.mp4, 1280×720 · 4초) ----
+     멈춰 있을 땐 첫 장면(좁은 천창). 첫 스크롤에 입력창 변신과 함께 재생돼 보내기가 눌리는 순간 끝난다.
+     되감을 땐 거꾸로 돌린다 — 그래서 모든 장면을 키프레임으로 인코딩해 어느 지점이든 바로 찾아간다 */
+  .hero-room { position: absolute; inset: 0; pointer-events: none; background: #040a1c; }
+  .hero-room-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* 입자감(필름 노이즈가 아니라 공기 중 먼지) — 캔버스로 그린다 */
+  .hero-dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 
-  /* ---- 히어로 종료 텍스트: 오버레이 재생이 끝나갈 때 JS로 순차 페이드인 ---- */
-  .hero-outro {
-    position: absolute;
-    left: 10.42%;   /* Figma: 150/1440 */
-    top: 25.4%;     /* Figma: 220/866 */
-    width: 22.92%;  /* Figma: 330/1440 */
-    z-index: 5;
+  .hero-content {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    will-change: transform;
+  }
+  .hero-title-main {
     color: #fff;
-    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  }
-  .hero-outro-title {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 40px;
+    font-size: 72px;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.18;
+    letter-spacing: -0.035em;
+    text-shadow: 0 2px 30px rgba(4, 10, 28, 0.5);
   }
-  .hero-outro-line,
-  .hero-outro-desc {
-    opacity: 0;
-    transform: translateY(20px);
-    white-space: nowrap; /* Figma가 의도적으로 나눈 줄바꿈 — 폴백 폰트 폭 차이로 인한 재줄바꿈 방지 */
-  }
-  .hero-outro-desc {
-    font-size: 16px;
-    font-weight: 400;
+  .hero-desc {
+    margin-top: 28px;
+    color: rgba(226, 234, 255, 0.72);
+    font-size: 20px;
     line-height: 1.6;
+    letter-spacing: -0.005em;
   }
-
-  /* 1200px 이하부터는 프레임이 좁아져 큰 폰트가 배경과 겹쳐 보임 — 폰트 축소 + 좌측으로 이동 */
-  @media (max-width: 1200px) {
-    .hero-outro { left: 5%; width: 34%; gap: 12px; }
-    .hero-outro-title { font-size: 24px; gap: 4px; }
-    .hero-outro-desc { font-size: 13px; }
+  /* 아래로 버튼 — 누르면 재생이 시작된다 */
+  .hero-down {
+    position: absolute;
+    right: max(var(--page-margin), calc((100% - 1120px) / 2));
+    bottom: 40px;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(226, 234, 255, 0.45);
+    border-radius: 50%;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .hero-down:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(226, 234, 255, 0.8); }
+  .hero-down:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  /* CTA(→ 입력창)는 설명 바로 아래. 56 → 74px로 커져도 덩어리가 흔들리지 않게 최종 높이만큼 자리를 잡아 둔다 */
+  .hero-composer-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 74px;
+    margin-top: 40px;
+  }
+  .hero-composer {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 256px;              /* JS가 스크롤 진행률로 256px → min(672px, 화면-32px) */
+    max-width: calc(100vw - 32px);
+    height: 56px;              /* → 74px */
+    padding: 0;                /* → 8px */
+    border: 1px solid rgba(17, 24, 39, 0);
+    border-radius: 28px;       /* → 36px */
+    background: #0158FD;       /* → 흰색 */
+    box-shadow: 0 0 40px rgba(1, 88, 253, 0.55);
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .hero-composer:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .hero-morph-cta {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .hero-morph-cta svg { width: 18px; height: 18px; }
+  .hero-composer-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    padding: 0 8px;
+    border-radius: 28px;
+    background: rgba(17, 24, 39, 0.04);
+    opacity: 0;
+    text-align: left;
+  }
+  .hero-composer-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    color: rgba(17, 24, 39, 0.55);
+  }
+  .hero-composer-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;          /* 넘치면 JS가 끝으로 밀어 방금 쓴 글자가 보이게 한다(실제 입력창처럼) */
+    white-space: nowrap;
+    color: #111827;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .hero-composer-text[data-empty="true"] { color: #9ca3af; }
+  .hero-composer-send {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #0158FD;
+    color: #fff;
+  }
+  .hero-composer-send { transition: transform 0.12s ease, background-color 0.12s ease; }
+  .hero-composer-send.is-pressed { transform: scale(0.84); background: #0046d1; }
+  .hero-composer-send.is-ready { animation: send-pulse 1s ease-out 1; }
+  @keyframes send-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(1, 88, 253, 0.45); }
+    100% { box-shadow: 0 0 0 14px rgba(1, 88, 253, 0); }
+  }
+  .hero-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 1px;
+    vertical-align: -0.15em;
+    background: #0158FD;
+    animation: caret-blink 1s steps(1) infinite;
+  }
+  @keyframes caret-blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-composer-send.is-ready, .hero-caret { animation: none; }
   }
 
   /* ---- 재사용 컨테이너: 페이지 마진 안에서 중앙 정렬 ---- */
   .container {
-    padding: 0 var(--page-margin);
+    /* 내용 폭 최대 1120px(GNB와 같은 식) — 넓은 화면에선 좌우 여백만 늘어난다 */
+    padding: 0 max(var(--page-margin), calc((100% - 1120px) / 2));
   }
 
   /* ---- 12컬럼 그리드: 새 섹션은 .grid 안에 .col-1~.col-12로 배치 ---- */
@@ -319,7 +416,8 @@
     display: grid;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     gap: var(--grid-gutter);
-    padding: 0 var(--page-margin);
+    /* 내용 폭 최대 1120px(GNB와 같은 식) — 넓은 화면에선 좌우 여백만 늘어난다 */
+    padding: 0 max(var(--page-margin), calc((100% - 1120px) / 2));
   }
   .col-1  { grid-column: span 1; }
   .col-2  { grid-column: span 2; }
@@ -529,8 +627,8 @@
   .pricing-row {
     grid-column: 2 / 12;
     display: grid;
-    /* 플랜 2개 — 폭이 과하게 넓어지지 않게 상한을 두고 가운데 정렬 */
-    grid-template-columns: repeat(2, minmax(0, 400px));
+    /* 플랜 3개 — 카드 섹션과 같은 2~11번 컬럼 3등분 */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-content: center;
     gap: var(--grid-gutter);
     align-items: start;
@@ -591,6 +689,45 @@
     letter-spacing: 0.2px;
   }
   .pricing-addon b { color: #111827; font-weight: 600; margin-right: 6px; }
+  /* 3열이 250px 아래로 좁아지면 가격(40px)이 카드 폭을 넘는다 — 태블릿 폭에선 한 줄에 한 장 */
+  @media (min-width: 769px) and (max-width: 1100px) {
+    .pricing-row { grid-template-columns: minmax(0, 420px); }
+  }
+
+  /* ---- 출시 알림 입력칸: 비전 섹션(어두운 배경) 안 ---- */
+  .waitlist { width: 100%; max-width: 480px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .waitlist-field {
+    display: flex; gap: 8px; padding: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: border-color 0.15s ease;
+  }
+  .waitlist-field:focus-within { border-color: rgba(255, 255, 255, 0.5); }
+  .waitlist-field input[type="email"] {
+    flex: 1; min-width: 0; padding: 0 18px;
+    background: none; border: 0; outline: 0;
+    color: #fff; font: inherit; font-size: 15px;
+  }
+  .waitlist-field input[type="email"]::placeholder { color: rgba(255, 255, 255, 0.5); }
+  .waitlist-btn {
+    flex: none; height: 44px; padding: 0 24px;
+    border: 0; border-radius: 999px;
+    background: #fff; color: #111827;
+    font: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .waitlist-btn:hover { background: #e5e7eb; }
+  .waitlist-btn:active { transform: scale(0.97); }
+  .waitlist-btn:disabled { opacity: 0.6; cursor: default; }
+  .waitlist-btn:focus-visible, .waitlist-consent input:focus-visible { outline: 2px solid #0158FD; outline-offset: 2px; }
+  /* 봇 걸러내기용 숨은 칸 — 사람은 못 보고 봇만 채운다 */
+  .waitlist-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .waitlist-consent { display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255, 255, 255, 0.75); font-size: 13px; cursor: pointer; }
+  .waitlist-consent input { width: 16px; height: 16px; accent-color: #0158FD; }
+  .waitlist-note { color: rgba(255, 255, 255, 0.45); font-size: 12px; line-height: 1.6; }
+  .waitlist-msg { min-height: 1.6em; color: #fff; font-size: 14px; }
+  .waitlist-msg.is-error { color: #fca5a5; }
 
   /* ---- FAQ: 답변은 HTML에 그대로 두고 <details>로 접기만 함 — 검색·AI 수집기가 본문으로 읽음 ---- */
   .faq-section { padding: 80px 0 120px; background: #fff; }
@@ -678,12 +815,13 @@
     .gnb-links { gap: 4px; }
     .gnb-logo img:first-child { width: 13px; height: 20px; }
     .gnb-logo img:last-child { width: 54px; height: 10px; }
-    .hero-title { left: 20px; bottom: 24px; font-size: 24px; }
-    /* 스크롤 스크럽 인터랙션 없이 문서 흐름에 놓인 고정 카드(4:3)로만 노출 — JS 인셋 계산 대신 CSS로 처리 */
-    .scrub-outer { height: auto; }
-    .scrub-sticky { position: static; height: auto; padding: var(--nav-height) var(--page-margin) 56px; background: #fff; }
-    .hero-frame { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; border-radius: 30px; }
-    .hero-outro { display: none; } /* 모바일은 sticky 스크럽/홀드 구간이 없어 트리거할 스크롤 진행률이 없음 */
+    .hero-title-main { font-size: 36px; } /* 72px면 폰 폭(390px)에서 한 줄이 넘친다 */
+    .hero-composer-slot { margin-top: 28px; }
+    .hero-sticky { padding-bottom: 80px; } /* 폰은 40px만 올린다 */
+    .hero-down { bottom: 24px; width: 44px; height: 44px; }
+    .gnb.is-on-hero { background: rgba(4, 10, 28, 0.45); }
+    .hero-desc { font-size: 15px; }
+    .hero-desc br { display: none; }
     /* 데스크톱 본문 폭(13px)은 모바일에서 너무 작음 — 본문 16px 유지 */
     .qa-title { font-size: 26px; }
     .qa-desc { font-size: 16px; }
@@ -713,6 +851,8 @@
     .faq-q { padding: 20px 0; font-size: 16px; }
     .faq-a { padding: 0 0 20px; }
     .vision-section { padding: 96px 0; }
+    .waitlist-field { flex-direction: column; border-radius: 24px; }
+    .waitlist-field input[type="email"] { height: 44px; }
     .footer { padding: 64px 0; }
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
        1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
@@ -741,27 +881,36 @@
     </div>
     <div class="gnb-links col-6">
       <a href="#" class="gnb-btn gnb-btn--ghost js-gnb-action" data-toast="준비중입니다">About Us</a>
-      <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Start</a>
+      <a href="#waitlist" class="gnb-btn gnb-btn--solid js-gnb-action" data-waitlist>Start</a>
     </div>
   </nav>
 
   <div class="toast" id="toast" role="status"></div>
 
-  <section class="scrub-outer" id="scrubOuter">
-    <div class="scrub-sticky">
-      <div class="hero-frame" id="heroFrame">
-        <canvas id="scrubCanvas"></canvas>
-        <h1 class="hero-title" id="heroTitle">드디어 내 말에 움직이고,<br>내 말로 일하는 AI</h1>
-        <canvas class="hero-overlay" id="heroOverlay"></canvas>
-        <div class="hero-outro" id="heroOutro">
-          <div class="hero-outro-title">
-            <p class="hero-outro-line" data-outro-index="0">더이상 고민하지 말고</p>
-            <p class="hero-outro-line" data-outro-index="1">마음대로 시작하세요</p>
-          </div>
-          <p class="hero-outro-desc" data-outro-index="2">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
-        </div>
-        <div class="scrub-loading" id="scrubLoading"></div>
+  <section class="hero-journey" id="heroJourney">
+    <div class="hero-sticky" id="heroSticky">
+      <div class="hero-room" aria-hidden="true">
+        <video class="hero-room-video" id="heroVideo" src="assets/sections/hero-room.mp4" poster="assets/sections/hero-room-poster.jpg" muted playsinline preload="auto"></video>
       </div>
+      <canvas class="hero-dust" id="heroDust" aria-hidden="true"></canvas>
+      <div class="hero-content" id="heroContent">
+        <h1 class="hero-title-main">드디어 내 말에 움직이고,<br>내 말로 일하는 AI</h1>
+        <p class="hero-desc">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
+        <!-- 보여 주기만 하는 입력창 — 누르면 출시 알림 칸으로 간다(출시 전이라 실제 입력은 받지 않는다) -->
+        <div class="hero-composer-slot">
+        <a href="#waitlist" class="hero-composer js-gnb-action" id="heroComposer" data-waitlist data-cta-location="hero">
+          <span class="hero-morph-cta" id="heroMorphCta">나만의 툴을 만들어보세요<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></span>
+          <span class="hero-composer-inner" id="heroComposerInner" aria-hidden="true">
+            <span class="hero-composer-icon"><svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></span>
+            <span class="hero-composer-text" id="heroComposerText" data-empty="true">하고 싶은 걸 편한 말로 말해 주세요</span>
+            <span class="hero-composer-send" id="heroComposerSend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg></span>
+          </span>
+        </a>
+        </div>
+      </div>
+      <button type="button" class="hero-down" id="heroDown" aria-label="아래로">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
     </div>
   </section>
 
@@ -877,32 +1026,44 @@
         <div class="plan">
           <p class="plan-name">Free</p>
           <p class="plan-price"><b>₩0</b></p>
-          <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">무료로 시작하기</a>
+          <a href="#waitlist" class="plan-cta js-gnb-action" data-waitlist>무료로 시작하기</a>
           <p class="plan-incl">Free에 포함된 기능</p>
           <ul class="plan-list">
             <li>내 말로 대화하는 프로젝트 1개</li>
             <li>직무 에이전트와 소통, 결정</li>
-            <li>산출물 배포 및 활용 (3일 동안 활성화)</li>
+            <li>산출물 배포 및 활용 (7일 동안 활성화)</li>
             <li>커뮤니티 지원 (예정)</li>
           </ul>
         </div>
         <div class="plan plan--featured">
           <p class="plan-name">Starter</p>
           <p class="plan-price"><b>₩29,000</b><span>/월</span></p>
-          <a href="#" class="plan-cta plan-cta--solid js-gnb-action" data-toast="준비중입니다">시작하기</a>
+          <a href="#waitlist" class="plan-cta plan-cta--solid js-gnb-action" data-waitlist>시작하기</a>
           <p class="plan-incl">Free의 모든 기능과 함께…</p>
           <ul class="plan-list">
-            <li>할당 토큰 내에서 프로젝트 무제한 생성</li>
+            <li>프로젝트 개수 제한 없이 만들기</li>
             <li>히스토리와 맥락을 학습해 나에게 맞는 에이전트 팀으로 성장</li>
             <li>프로젝트 완료 후에도 산출물 안에서 이어지는 서비스 에이전트 지원</li>
-            <li>산출물 배포·유지보수 비용은 플랜에서 차감</li>
+            <li>완성한 산출물의 배포·유지 비용 포함</li>
             <li>커뮤니티 지원 (예정)</li>
+          </ul>
+        </div>
+        <div class="plan">
+          <p class="plan-name">Pro</p>
+          <p class="plan-price"><b>₩59,000</b><span>/월</span></p>
+          <a href="#waitlist" class="plan-cta js-gnb-action" data-waitlist>시작하기</a>
+          <p class="plan-incl">Starter의 모든 기능과 함께…</p>
+          <ul class="plan-list">
+            <li>한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배</li>
+            <li>데이터 자동 연동·정기 리포트처럼 계속 도는 운영도 넉넉하게</li>
+            <li>이상이 생기면 알려 주는 상시 감시도 여유 있게</li>
+            <li>산출물에 새 화면·지표를 더하고 다른 산출물과 잇는 확장까지</li>
           </ul>
         </div>
       </div>
       <p class="pricing-addon">
-        <b>Add-on ₩20,000부터</b>
-        Starter 플랜에 할당된 토큰을 모두 사용하면, 추가 결제로 토큰을 충전해 그대로 이어서 작업할 수 있습니다.
+        <b>추가 결제 ₩20,000</b>
+        이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 추가 결제로 이번 것만 더 하거나, Pro로 옮겨 넉넉하게 쓸 수 있습니다.
       </p>
     </div>
   </section>
@@ -929,7 +1090,7 @@
         </details>
         <details class="faq-item">
           <summary class="faq-q">요금은 얼마인가요?</summary>
-          <p class="faq-a">Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 3일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 할당 토큰 안에서 프로젝트를 제한 없이 만들 수 있습니다. 토큰을 다 쓰면 20,000원부터 추가 충전할 수 있습니다.</p>
+          <p class="faq-a">Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다.</p>
         </details>
         <details class="faq-item">
           <summary class="faq-q">언제부터 쓸 수 있나요?</summary>
@@ -948,6 +1109,18 @@
           <span class="reveal-line" data-reveal-index="2">누구나 자기 일을 끝까지 해내는 세상.</span>
         </h2>
         <p class="qa-desc reveal-line" data-reveal-index="3">AI는 다룰 줄 아는 소수의 것이 아니라, 무언가를 이루려는 모두의 것이어야 합니다.</p>
+        <!-- 출시 알림 신청. 제출처는 스크립트의 WAITLIST_ENDPOINT(구글 시트 — apps-script/waitlist.gs).
+             reveal-line을 안 붙인 이유: 스크롤 진행률로 투명도가 바뀌면 반쯤 보이는 상태에서도 눌린다 -->
+        <form class="waitlist" id="waitlist" novalidate>
+          <div class="waitlist-field">
+            <input type="email" name="email" id="waitlistEmail" placeholder="이메일 주소" autocomplete="email" aria-label="이메일 주소" required>
+            <input type="text" name="company" class="waitlist-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button type="submit" class="waitlist-btn">출시 알림 받기</button>
+          </div>
+          <label class="waitlist-consent"><input type="checkbox" name="consent" required> 출시 알림을 위한 이메일 수집·이용에 동의합니다 (필수)</label>
+          <p class="waitlist-note">수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 파기<br>동의하지 않으면 알림을 받을 수 없습니다.</p>
+          <p class="waitlist-msg" role="status" aria-live="polite"></p>
+        </form>
       </div>
     </div>
   </section>
@@ -983,18 +1156,7 @@
   // MOBILE은 로드 시점에 한 번만 고정되므로, 리사이즈로 768px 경계를 넘으면 재판정하도록 새로고침
   window.matchMedia('(max-width: 768px)').addEventListener('change', () => location.reload());
 
-  const FRAME_COUNT = 144;
-  const frameSrc = (i) => `assets/frames/frame_${String(i).padStart(3, '0')}.webp`;
-  const OVERLAY_FRAME_COUNT = 54;
-  const overlayFrameSrc = (i) => `assets/frames2/frame_${String(i).padStart(3, '0')}.webp`;
-
-  const scrubOuter = document.getElementById('scrubOuter');
-  const heroFrame = document.getElementById('heroFrame');
   const gnb = document.getElementById('gnb');
-  const heroTitle = document.getElementById('heroTitle');
-  const canvas = document.getElementById('scrubCanvas');
-  const loadingEl = document.getElementById('scrubLoading');
-  const heroOverlay = document.getElementById('heroOverlay');
   const toast = document.getElementById('toast');
 
   document.querySelectorAll('.gnb-logo, .footer-logo-row').forEach((el) => {
@@ -1127,6 +1289,43 @@
     });
   });
 
+  // ---- 출시 알림 신청 → 구글 시트 ----
+  // 구글 Apps Script 웹 앱 배포 URL. 배포 방법은 apps-script/waitlist.gs 맨 위 주석
+  const WAITLIST_ENDPOINT = '';
+  const waitlistForm = document.getElementById('waitlist');
+  const waitlistMsg = waitlistForm.querySelector('.waitlist-msg');
+  const waitlistBtn = waitlistForm.querySelector('.waitlist-btn');
+  function setWaitlistMsg(text, isError) {
+    waitlistMsg.textContent = text;
+    waitlistMsg.classList.toggle('is-error', !!isError);
+  }
+  waitlistForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = waitlistForm.email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setWaitlistMsg('이메일 주소를 다시 확인해 주세요.', true);
+    if (!waitlistForm.consent.checked) return setWaitlistMsg('이메일 수집·이용에 동의해 주셔야 알림을 보내 드릴 수 있습니다.', true);
+    if (waitlistForm.company.value) return; // 숨은 칸이 채워졌으면 봇
+    // 주소가 비어 있으면 fetch('')가 이 페이지로 보내져 성공처럼 보인다 — 막는다
+    if (!WAITLIST_ENDPOINT) return setWaitlistMsg('준비중입니다. 잠시 후 다시 시도해 주세요.', true);
+    waitlistBtn.disabled = true;
+    setWaitlistMsg('');
+    try {
+      // Apps Script는 CORS 응답 헤더를 못 붙여서 no-cors로 보낸다 — 응답 본문은 못 읽고, 네트워크 실패만 잡힌다
+      await fetch(WAITLIST_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new URLSearchParams({ email, referrer: document.referrer || 'direct' }),
+      });
+      setWaitlistMsg('신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.');
+      waitlistForm.reset();
+      if (typeof gtag === 'function') gtag('event', 'waitlist_submit');
+    } catch (err) {
+      setWaitlistMsg('보내지 못했습니다. 잠시 후 다시 시도해 주세요.', true);
+    } finally {
+      waitlistBtn.disabled = false;
+    }
+  });
+
   let toastTimer;
   document.querySelectorAll('.js-gnb-action').forEach((el) => {
     el.addEventListener('click', (e) => {
@@ -1135,8 +1334,14 @@
       if (typeof gtag === 'function') {
         gtag('event', 'cta_click', {
           cta_label: el.textContent.trim(),
-          cta_location: el.classList.contains('gnb-btn') ? 'gnb' : 'pricing',
+          cta_location: el.dataset.ctaLocation || (el.classList.contains('gnb-btn') ? 'gnb' : 'pricing'),
         });
+      }
+      if ('waitlist' in el.dataset) {
+        // 아래 출시 알림 입력칸으로 바로 이동(부드러운 스크롤이면 히어로·스텝 애니메이션을 전부 지나가며 재생된다)
+        waitlistForm.scrollIntoView({ block: 'center' });
+        waitlistForm.email.focus({ preventScroll: true });
+        return;
       }
       clearTimeout(toastTimer);
       toast.textContent = el.dataset.toast;
@@ -1145,90 +1350,273 @@
     });
   });
 
-  // object-fit: cover와 동일한 계산으로 프레임 시퀀스를 캔버스에 스크럽 재생
-  // start()를 호출하기 전까진 요청을 보내지 않음 — 오버레이는 히어로 로딩이 끝난 뒤에만 불러와 초기 로드와 대역폭을 다투지 않게 함
-  function createScrubber(canvasEl, count, srcFn) {
-    const ctx = canvasEl.getContext('2d', { willReadFrequently: true });
-    const imgs = [];
-    let started = false;
-    function start(onAllLoaded) {
-      if (started) return;
-      started = true;
-      let loadedCount = 0;
-      for (let i = 1; i <= count; i++) {
-        const img = new Image();
-        img.onload = () => {
-          loadedCount++;
-          if (i === 1) draw(1); // 첫 프레임 도착하면 바로 보여주기
-          if (loadedCount === count && onAllLoaded) onAllLoaded();
-        };
-        img.src = srcFn(i);
-        imgs.push(img);
-      }
+  // ---- 히어로: 첫 스크롤 → (잠금) 알약→입력창 변신 → 타이핑 → 보내기 눌림 → (해제) ----
+  const MORPH_MS = 700;       // 알약 → 입력창
+  const REWIND_MS = 450;      // 입력창 → 알약(거꾸로)
+  const TYPE_MS = 55;         // 한 글자당
+  const PRE_SEND_MS = 350;    // 다 쓰고 보내기 누르기 전 한 박자
+  const PRESS_MS = 160;       // 보내기 버튼이 눌려 있는 시간
+  const POST_SEND_MS = 200;   // 눌린 뒤 이만큼 있다가 잠금을 풀고 아래 섹션으로 스크롤
+  const NEXT_SCROLL_MS = 1400; // 아래 섹션까지 내려가는 시간(브라우저 기본 부드러운 스크롤은 속도를 못 정해서 직접 움직인다)
+  const HERO_LIFT_PX = 0;     // 변신하면서 제목·입력창 묶음이 위로 올라가는 거리(방 구도를 고정하려고 0)
+  const HERO_EXAMPLE = '광고비 대비 매출이 안 봐도 집계돼 있으면 좋겠어요';
+  const heroContent = document.getElementById('heroContent');
+  const heroSticky = document.getElementById('heroSticky');
+  const heroVideo = document.getElementById('heroVideo');
+  const HERO_VIDEO_RATE = 2; // 영상 재생 속도(2.7초 영상 → 약 1.35초)
+  function playHeroVideo() {
+    if (!heroVideo.duration) return;
+    heroVideo.playbackRate = HERO_VIDEO_RATE;
+    heroVideo.currentTime = 0;
+    heroVideo.play().catch(() => {});
+  }
+  function rewindHeroVideo(ms) {
+    heroVideo.pause();
+    const from = heroVideo.currentTime;
+    const t0 = performance.now();
+    (function step(now) {
+      const t = clamp01((now - t0) / ms);
+      heroVideo.currentTime = lerp(from, 0, easeInOut(t));
+      if (t < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function showHeroVideoEnd() {
+    const toEnd = () => { heroVideo.pause(); heroVideo.currentTime = Math.max(0, heroVideo.duration - 0.05); };
+    if (heroVideo.readyState >= 1) toEnd(); else heroVideo.addEventListener('loadedmetadata', toEnd, { once: true });
+  }
+  const composer = document.getElementById('heroComposer');
+  const morphCta = document.getElementById('heroMorphCta');
+  const composerInner = document.getElementById('heroComposerInner');
+  const composerText = document.getElementById('heroComposerText');
+  const composerSend = document.getElementById('heroComposerSend');
+  const composerPlaceholder = composerText.textContent;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  let heroState = 'start'; // start | playing | end | rewinding
+  let morphP = 0;
+  let typed = 0; // 0 = 안내 문구, 1~n = 쓴 글자 수
+  const isHeroLocked = () => heroState === 'playing' || heroState === 'rewinding';
+
+  function renderHero(p) {
+    morphP = p;
+    const e = easeInOut(p);
+    const slot = composer.parentElement, slotCs = getComputedStyle(slot);
+    const avail = slot.clientWidth - parseFloat(slotCs.paddingLeft) - parseFloat(slotCs.paddingRight);
+    const maxW = Math.max(256, Math.min(672, avail));
+    composer.style.width = lerp(256, maxW, e) + 'px';
+    composer.style.height = lerp(56, 74, e) + 'px';
+    composer.style.padding = lerp(0, 8, e) + 'px';
+    composer.style.borderRadius = lerp(28, 36, e) + 'px';
+    // 파랑(1, 88, 253) → 흰색
+    composer.style.backgroundColor = `rgb(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))})`;
+    composer.style.borderColor = `rgba(17, 24, 39, ${(0.08 * e).toFixed(3)})`;
+    morphCta.style.opacity = 1 - clamp01(p / 0.35);
+    composerInner.style.opacity = clamp01((p - 0.45) / 0.45);
+    heroContent.style.transform = `translateY(${-HERO_LIFT_PX * e}px)`;
+    heroSticky.style.setProperty('--glow', e.toFixed(3));
+    // 알약일 땐 파란 빛을 두르고, 입력창이 되면 그림자로 바뀐다
+    composer.style.boxShadow = `0 0 ${Math.round(40 * (1 - e))}px rgba(1, 88, 253, ${(0.55 * (1 - e)).toFixed(3)}), 0 16px 44px -12px rgba(0, 0, 0, ${(0.45 * e).toFixed(3)})`;
+  }
+  function renderTyped(showCaret) {
+    if (typed === 0) {
+      composerText.dataset.empty = 'true';
+      composerText.textContent = composerPlaceholder;
+      return;
     }
-    function resize() {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvasEl.getBoundingClientRect();
-      canvasEl.width = rect.width * dpr;
-      canvasEl.height = rect.height * dpr;
+    composerText.dataset.empty = 'false';
+    composerText.textContent = HERO_EXAMPLE.slice(0, typed);
+    if (showCaret) {
+      const caret = document.createElement('span');
+      caret.className = 'hero-caret';
+      composerText.appendChild(caret);
     }
-    function draw(index) {
-      const img = imgs[index - 1];
-      if (!img || !img.complete || img.naturalWidth === 0) return;
-      const cw = canvasEl.width, ch = canvasEl.height;
-      const iw = img.naturalWidth, ih = img.naturalHeight;
-      const scale = Math.max(cw / iw, ch / ih);
-      const dw = iw * scale, dh = ih * scale;
-      const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.drawImage(img, dx, dy, dw, dh);
-    }
-    return { start, resize, draw };
+    composerText.scrollLeft = composerText.scrollWidth; // 넘치면 방금 쓴 글자가 보이게(실제 입력창처럼)
+  }
+  function tween(from, to, ms) {
+    return new Promise((resolve) => {
+      const t0 = performance.now();
+      (function step(now) {
+        const t = clamp01((now - t0) / ms);
+        renderHero(lerp(from, to, t));
+        if (t < 1) requestAnimationFrame(step); else resolve();
+      })(t0);
+    });
+  }
+  function typeAll() {
+    return new Promise((resolve) => {
+      const timer = setInterval(() => {
+        typed++;
+        renderTyped(true);
+        if (typed >= HERO_EXAMPLE.length) { clearInterval(timer); resolve(); }
+      }, TYPE_MS);
+    });
+  }
+  function showEnd() {
+    showHeroVideoEnd();
+    renderHero(1);
+    typed = HERO_EXAMPLE.length;
+    renderTyped(false);
+    heroState = 'end';
   }
 
-  // 모바일은 1번 프레임 한 장만 보여주므로 144장을 내려받지 않음
-  const hero = createScrubber(canvas, MOBILE ? 1 : FRAME_COUNT, frameSrc);
-  const overlay = createScrubber(heroOverlay, OVERLAY_FRAME_COUNT, overlayFrameSrc);
-  hero.start(() => {
-    loadingEl.style.display = 'none';
-    if (!MOBILE) overlay.start();
+  async function playHeroIntro() {
+    if (heroState !== 'start') return;
+    if (reduceMotion) { showEnd(); return; }
+    heroState = 'playing';
+    window.scrollTo(0, 0);
+    playHeroVideo();
+    await tween(morphP, 1, MORPH_MS);
+    await typeAll();
+    await wait(PRE_SEND_MS);
+    renderTyped(false); // 보내는 순간 커서는 뗀다
+    composerSend.classList.add('is-pressed');
+    await wait(PRESS_MS);
+    composerSend.classList.remove('is-pressed');
+    composerSend.classList.add('is-ready'); // 눌린 뒤 한 번 반짝
+    await wait(POST_SEND_MS);
+    heroState = 'end';
+    // 보내면 바로 아래 섹션으로 — 「보냈더니 일이 시작된다」로 이어지게
+    const next = document.querySelector('.story-section');
+    if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
+  }
+
+  // 정해진 시간 동안 천천히 출발해 천천히 멈추는 스크롤. 도중에 유저가 휠·터치를 하면 그 자리에서 멈춘다
+  let autoScrollId = 0;
+  function scrollToY(to, ms) {
+    const from = window.scrollY;
+    const t0 = performance.now();
+    const id = ++autoScrollId;
+    const stop = () => { autoScrollId++; };
+    window.addEventListener('wheel', stop, { once: true, passive: true });
+    window.addEventListener('touchstart', stop, { once: true, passive: true });
+    (function step(now) {
+      if (id !== autoScrollId) return;
+      const t = clamp01((now - t0) / ms);
+      window.scrollTo(0, lerp(from, to, easeInOut(t)));
+      if (t < 1) requestAnimationFrame(step);
+      else { window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); }
+    })(t0);
+  }
+  async function rewindHeroIntro() {
+    if (heroState !== 'end') return;
+    heroState = 'rewinding';
+    composerSend.classList.remove('is-ready', 'is-pressed');
+    typed = 0;
+    renderTyped(false);
+    rewindHeroVideo(REWIND_MS);
+    await tween(morphP, 0, REWIND_MS);
+    heroState = 'start';
+  }
+
+  // 아래로 버튼 — 재생 전이면 재생(끝나면 알아서 다음 섹션으로), 이미 봤으면 바로 다음 섹션으로
+  document.getElementById('heroDown').addEventListener('click', () => {
+    if (heroState === 'start') { playHeroIntro(); return; }
+    const next = document.querySelector('.story-section');
+    if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
   });
 
-  let current = 0;
-  let target = 0;
-  let rawCurrent = 0;
-  let rawTarget = 0;
-  let outroTarget = 0; // 아웃트로 텍스트 트리거용 진행률(0~1)
-
-  const HOLD_PX = 1200; // 마지막 프레임 도달 후 오버레이(frames2)가 재생되는 홀드 스크롤량 (재생 시작점이 늦춰진 만큼 예산을 키워 속도 유지)
-  const EXTRA_HOLD_PX = 200; // 오버레이 마지막 프레임 이후 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
-  const OUTRO_START = 0.9; // 프레임(frames, 144장) 스크럽이 90% 진행된 지점부터 아웃트로 텍스트 시작
-
-  function getProgress() {
-    const rect = scrubOuter.getBoundingClientRect();
-    const scrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
-    return Math.min(1, Math.max(0, -rect.top / scrollable));
+  // ---- 공기 중 먼지: 천천히 떠오르고 깜빡인다. 빛기둥 안에 있는 입자가 더 밝다 ----
+  const dust = document.getElementById('heroDust');
+  const dctx = dust.getContext('2d');
+  let dustPts = [];
+  function sizeDust() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    dust.width = dust.clientWidth * dpr;
+    dust.height = dust.clientHeight * dpr;
+    dctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(dust.clientWidth * dust.clientHeight / 9000);
+    dustPts = Array.from({ length: n }, () => ({
+      x: Math.random() * dust.clientWidth,
+      y: Math.random() * dust.clientHeight,
+      r: Math.random() * 1.3 + 0.3,
+      v: Math.random() * 0.18 + 0.04,
+      ph: Math.random() * Math.PI * 2,
+    }));
   }
-
-  // HOLD_PX까지 포함한 진행률(EXTRA_HOLD_PX는 제외) — 오버레이가 히어로와 동시에 끝내려고
-  // 서두르지 않고 홀드 구간까지 여유롭게 재생된 뒤, EXTRA_HOLD_PX 동안은 마지막 프레임에 멈춰있음
-  function getRawProgress() {
-    const rect = scrubOuter.getBoundingClientRect();
-    const scrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
-    return Math.min(1, Math.max(0, -rect.top / scrollable));
+  function drawDust(t) {
+    const w = dust.clientWidth, h = dust.clientHeight;
+    dctx.clearRect(0, 0, w, h);
+    const glow = parseFloat(getComputedStyle(heroSticky).getPropertyValue('--glow')) || 0;
+    for (const d of dustPts) {
+      if (!reduceMotion) {
+        d.y -= d.v;
+        d.x += Math.sin(t / 3000 + d.ph) * 0.08;
+        if (d.y < -4) { d.y = h + 4; d.x = Math.random() * w; }
+      }
+      // 빛기둥(가운데, 아래로 갈수록 넓어짐) 안이면 밝게
+      const half = w * (0.06 + 0.22 * (d.y / h));
+      const inBeam = Math.abs(d.x - w / 2) < half;
+      const tw = 0.5 + 0.5 * Math.sin(t / 900 + d.ph);
+      const a = (inBeam ? 0.55 + glow * 0.25 : 0.18) * (0.4 + 0.6 * tw);
+      dctx.fillStyle = `rgba(210, 225, 255, ${a.toFixed(3)})`;
+      dctx.beginPath();
+      dctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      dctx.fill();
+    }
+    if (!reduceMotion) requestAnimationFrame(drawDust);
   }
+  sizeDust();
+  requestAnimationFrame(drawDust);
+  window.addEventListener('resize', sizeDust, { passive: true });
 
-  // 시작점은 frames(target) 90% 지점에 고정, 끝점은 frames와 무관하게 오버레이 홀드가 끝나는
-  // 지점(rawProgress=1)으로 늦춰서 스크롤 픽셀 구간으로 직접 정규화
-  function getOutroProgress() {
-    const rect = scrubOuter.getBoundingClientRect();
-    const mainScrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
-    const rawScrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
-    const scrolled = -rect.top;
-    const start = mainScrollable * OUTRO_START;
-    const end = rawScrollable;
-    return Math.min(1, Math.max(0, (scrolled - start) / (end - start)));
+  // ---- GNB: 어두운 히어로 위에 있는 동안 흰색으로 ----
+  const heroJourneyEl = document.getElementById('heroJourney');
+  const gnbWordmark = document.querySelector('.gnb-logo img:last-child');
+  function syncGnbOnHero() {
+    const onHero = heroJourneyEl.getBoundingClientRect().bottom > 84 / 2; // GNB 높이의 절반까지 히어로가 남아 있으면
+    gnb.classList.toggle('is-on-hero', onHero);
+    gnb.classList.toggle('is-at-top', window.scrollY < 10);
+    const want = onHero ? 'assets/nav/handoff-wordmark-white.svg' : 'assets/nav/handoff-wordmark.svg';
+    if (!gnbWordmark.getAttribute('src').endsWith(want)) gnbWordmark.setAttribute('src', want);
   }
+  syncGnbOnHero();
+  window.addEventListener('scroll', syncGnbOnHero, { passive: true });
+
+  renderHero(0);
+  // 새로고침 등으로 이미 내려온 위치에서 열렸으면 재생 없이 끝 상태로
+  if (window.scrollY > 0) showEnd();
+  window.addEventListener('resize', () => renderHero(morphP), { passive: true });
+
+  // 스크롤 입력 감지. 재생·되감기 중엔 같은 입력을 막아 화면을 붙잡는다(passive: false)
+  const atTop = () => window.scrollY <= 0;
+  const blockWhileLocked = (e) => { if (isHeroLocked()) e.preventDefault(); };
+  const DOWN_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ', 'Spacebar']);
+  const UP_KEYS = new Set(['ArrowUp', 'PageUp', 'Home']);
+  window.addEventListener('wheel', (e) => {
+    if (e.deltaY > 0 && heroState === 'start') playHeroIntro();
+    else if (e.deltaY < 0 && heroState === 'end' && atTop()) rewindHeroIntro();
+    blockWhileLocked(e);
+  }, { passive: false });
+  let heroTouchY = 0;
+  window.addEventListener('touchstart', (e) => { heroTouchY = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    const dy = heroTouchY - e.touches[0].clientY; // 양수 = 아래로 스크롤
+    if (dy > 0 && heroState === 'start') playHeroIntro();
+    else if (dy < 0 && heroState === 'end' && atTop()) rewindHeroIntro();
+    blockWhileLocked(e);
+  }, { passive: false });
+  window.addEventListener('keydown', (e) => {
+    const down = DOWN_KEYS.has(e.key), up = UP_KEYS.has(e.key);
+    if (!down && !up) return;
+    if (e.target.closest && e.target.closest('input, textarea, select, button, a, [contenteditable]')) return;
+    if (down && heroState === 'start') playHeroIntro();
+    else if (up && heroState === 'end' && atTop()) rewindHeroIntro();
+    blockWhileLocked(e);
+  });
+  let heroPrevY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (heroState === 'start' && y > 0) playHeroIntro(); // 스크롤바를 끌어 내린 경우
+    // 위로 올라와 맨 위에 닿는 순간 되감는다 — 휠·트랙패드·키·스크롤바 어느 쪽으로 올라와도 같다
+    else if (heroState === 'end' && y <= 0 && heroPrevY > 0) rewindHeroIntro();
+    if (isHeroLocked() && y !== 0) window.scrollTo(0, 0);
+    heroPrevY = window.scrollY;
+  }, { passive: true });
 
   let lastScrollY = window.scrollY;
   let gnbVisible = true;
@@ -1243,9 +1631,6 @@
   }
 
   function onScroll() {
-    target = getProgress();
-    rawTarget = getRawProgress();
-    outroTarget = getOutroProgress();
     const y = window.scrollY;
     const delta = y - lastScrollY;
     if (y < 10) {
@@ -1280,122 +1665,9 @@
     }, { passive: true });
   }
 
-  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
-  function lerp(a, b, t) { return a + (b - a) * t; }
-
-  const NAV_H = 84, NAV_GAP = 0, SIDE = 30, BOTTOM = 60, RADIUS = 30;
-  // 마진/라운드는 스크롤 극초반(6%)에서만 빠르게 0으로 스냅 — 그 이후는 프레임 스크럽에만 반응
-  const LAYOUT_RANGE = 0.06;
-  // 오버레이 영상은 스크롤 마지막 구간(80%~100%)에서 페이드인되며 자체 프레임을 스크럽
-  const OVERLAY_START = 0.86;
-
-  function updateLayout(progress) {
-    heroOverlay.style.opacity = easeOutCubic(Math.min(1, Math.max(0, (progress - OVERLAY_START) / (1 - OVERLAY_START))));
-    const t = easeOutCubic(Math.min(1, progress / LAYOUT_RANGE));
-    const top = lerp(NAV_H + NAV_GAP, 0, t);
-    const side = lerp(SIDE, 0, t);
-    const bottom = lerp(BOTTOM, 0, t);
-    const radius = lerp(RADIUS, 0, t);
-    heroFrame.style.top = top + 'px';
-    heroFrame.style.left = side + 'px';
-    heroFrame.style.right = side + 'px';
-    heroFrame.style.bottom = bottom + 'px';
-    heroFrame.style.borderRadius = radius + 'px';
-    heroTitle.style.opacity = 1 - t;
-  }
-
-  function overlayFrameIndex() {
-    const rect = scrubOuter.getBoundingClientRect();
-    const mainScrollable = rect.height - window.innerHeight - HOLD_PX - EXTRA_HOLD_PX;
-    const rawScrollable = rect.height - window.innerHeight - EXTRA_HOLD_PX;
-    const rawOverlayStart = mainScrollable / rawScrollable; // 히어로가 끝나 opacity가 완전히 1이 되는 시점부터 프레임 재생 시작 (페이드인 중 앞단 소모 방지)
-    const t = Math.min(1, Math.max(0, (rawCurrent - rawOverlayStart) / (1 - rawOverlayStart)));
-    return Math.min(OVERLAY_FRAME_COUNT, Math.max(1, Math.round(t * (OVERLAY_FRAME_COUNT - 1)) + 1));
-  }
-
-  // GNB 텍스트로고/텍스트버튼 뒤에 실제로 그려진 캔버스 픽셀 밝기를 읽어 라이트/다크 컬러를 스위칭
-  const wordmarkImg = document.querySelector('.gnb-logo img:last-child');
-  const wordmarkSrc = { light: 'assets/nav/handoff-wordmark.svg', dark: 'assets/nav/handoff-wordmark-white.svg' };
-  const ghostBtn = document.querySelector('.gnb-btn--ghost');
-  const LUM_THRESHOLD = 140;
-
-  function luminanceAt(canvasEl, clientX, clientY) {
-    const rect = canvasEl.getBoundingClientRect();
-    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-      return 255; // 프레임 캔버스 바깥(= 흰 배경 위) — 밝음으로 취급
-    }
-    const dpr = window.devicePixelRatio || 1;
-    const x = Math.min(canvasEl.width - 1, Math.round((clientX - rect.left) * dpr));
-    const y = Math.min(canvasEl.height - 1, Math.round((clientY - rect.top) * dpr));
-    const px = canvasEl.getContext('2d').getImageData(Math.max(0, x), Math.max(0, y), 1, 1).data;
-    return 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2];
-  }
-
-  function bgLuminanceAt(clientX, clientY) {
-    const overlayVisible = parseFloat(heroOverlay.style.opacity || '0') > 0.5;
-    return luminanceAt(overlayVisible ? heroOverlay : canvas, clientX, clientY);
-  }
-
-  function updateGnbContrast() {
-    const wRect = wordmarkImg.getBoundingClientRect();
-    const isDarkForLogo = bgLuminanceAt(wRect.left + wRect.width / 2, wRect.top + wRect.height / 2) < LUM_THRESHOLD;
-    const wantSrc = isDarkForLogo ? wordmarkSrc.dark : wordmarkSrc.light;
-    if (!wordmarkImg.src.endsWith(wantSrc)) wordmarkImg.src = wantSrc;
-
-    const bRect = ghostBtn.getBoundingClientRect();
-    const isDarkForBtn = bgLuminanceAt(bRect.left + bRect.width / 2, bRect.top + bRect.height / 2) < LUM_THRESHOLD;
-    ghostBtn.classList.toggle('is-on-dark', isDarkForBtn);
-  }
-
-  // 아웃트로 텍스트 3개(타이틀 2줄 + 설명)를 순차 페이드인+상승. linear이므로 opacity == localT —
-  // 다음 텍스트는 이전 텍스트 opacity가 60%(=0.6)일 때 시작하도록 STAGGER = DURATION * 0.6
-  const OUTRO_DURATION = 0.3; // 0.5의 60%
-  const OUTRO_STAGGER = OUTRO_DURATION * 0.6;
-  const outroEls = document.querySelectorAll('#heroOutro [data-outro-index]');
-
-  function updateOutro(outroT) {
-    outroEls.forEach((el) => {
-      const i = Number(el.dataset.outroIndex);
-      const localT = Math.min(1, Math.max(0, (outroT - i * OUTRO_STAGGER) / OUTRO_DURATION));
-      el.style.opacity = localT;
-      el.style.transform = `translateY(${(1 - localT) * 20}px)`;
-    });
-  }
-
-  function raf() {
-    current += (target - current) * 0.15;
-    rawCurrent += (rawTarget - rawCurrent) * 0.15;
-    updateLayout(target); // hero-frame 크기가 바뀌므로 그리기 전에 캔버스 버퍼도 갱신
-    updateOutro(outroTarget);
-    hero.resize();
-    hero.draw(Math.min(FRAME_COUNT, Math.max(1, Math.round(current * (FRAME_COUNT - 1)) + 1)));
-    overlay.resize();
-    overlay.draw(overlayFrameIndex());
-    updateGnbContrast();
-    requestAnimationFrame(raf);
-  }
-
-  if (MOBILE) {
-    // 스크롤 스크럽 없이, CSS aspect-ratio(4:3)로 문서 흐름에 놓인 고정 카드로만 노출
-    window.addEventListener('resize', () => {
-      hero.resize();
-      hero.draw(1);
-    }, { passive: true });
-    hero.resize();
-    hero.draw(1);
-  } else {
-    window.addEventListener('resize', () => {
-      hero.resize();
-      hero.draw(Math.round(current * (FRAME_COUNT - 1)) + 1);
-      overlay.resize();
-      overlay.draw(overlayFrameIndex());
-    }, { passive: true });
+  if (!MOBILE) {
     window.addEventListener('scroll', onScroll, { passive: true });
-    hero.resize();
-    overlay.resize();
     onScroll();
-    updateLayout(target);
-    requestAnimationFrame(raf);
   }
 </script>
 
