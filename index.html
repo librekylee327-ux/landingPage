@@ -1270,7 +1270,8 @@
     /* 폰: 섹션 경계 근처에서 멈추면 섹션 시작점에 탁 맞춰 한 섹션이 온전히 보이게(proximity — 스토리 와이프처럼
        스크롤로 진행되는 긴 섹션 중간에선 끌어당기지 않는다). 자동 스크롤(scrollToY) 중엔 JS가 잠시 끈다 */
     html { scroll-snap-type: y proximity; }
-    .hero-journey, .steps-section, .story-section, .cards-section, .pricing-section, .faq-section, .vision-section { scroll-snap-align: start; }
+    /* 히어로는 스냅 지점에서 뺀다 — 맨 위(0)로 끌어당기면 히어로가 "위로 올라왔다"며 처음으로 되감아 아래로 내려갈 수 없게 된다 */
+    .steps-section, .story-section, .cards-section, .pricing-section, .faq-section, .vision-section { scroll-snap-align: start; }
     .tw-snap-end { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; scroll-snap-align: end; pointer-events: none; } /* 스토리 와이프가 끝나 고정이 풀리는 지점 */
     .footer { scroll-snap-align: end; }
     .grid > [class^="col-"],
