@@ -176,8 +176,7 @@
      숨기면 브라우저와 무관하게 항상 안 보이고, 스크롤 동작 자체(휠·트랙패드·키보드)는 그대로 된다.
      스크롤바가 항상 없으니 히어로 재생 때 overflow-y:hidden을 걸어도 폭이 변할 일 자체가 없다 —
      scrollbar-gutter로 자리를 예약해 둘 필요도 사라졌다 */
-  /* 페이지 바깥(위아래로 당겼을 때 · 폰 하단 주소창 뒤)은 히어로·푸터와 같은 남색 — 흰색이면 어두운 푸터 아래가 잘려 보인다.
-     섹션들의 흰 바탕은 body가 따로 칠한다 */
+  /* 페이지 바깥(위아래로 당겼을 때 · 폰 하단 주소창 뒤)은 히어로·푸터와 같은 남색 — 흰색이면 어두운 푸터 아래가 잘려 보인다 */
   html { background: #040a1c; overflow-x: hidden; overscroll-behavior-y: none; scrollbar-width: none; -ms-overflow-style: none; }
   html::-webkit-scrollbar { display: none; width: 0; height: 0; }
   body {
@@ -185,7 +184,9 @@
        hidden이 아니라 clip — 스크롤 컨테이너를 만들지 않아 position: sticky(핀 섹션들)가 그대로 동작한다 */
     overflow-x: clip;
     font-family: 'Pretendard', -apple-system, sans-serif;
-    background: #fff;
+    /* 남색 — 아이폰 사파리는 위 상태 표시줄·아래 주소창 영역을 body 바탕색으로 칠한다(흰색이면 어두운 푸터 아래가 잘려 보였다).
+       흰 섹션들은 각자 흰 바탕을 직접 칠한다 */
+    background: #040a1c;
     color: #111827;
     word-break: keep-all;
     overflow-wrap: break-word;
@@ -491,7 +492,7 @@
      왼쪽 "요청 그대로 하면"은 바로 1.3을 내놓고 끝. 오른쪽 "핸드오프"는 "잠깐요"로 멈춰 같은 데이터를 두 번 계산해
      1.3 vs 4.0(세 배 차이)을 보여 주고, 유저가 "아, 묶고 나서로"를 고른다. 화면에 들어오면 자동 재생(JS renderDuel).
      모든 요소는 처음부터 자리를 차지한 채 투명도·위치로만 나타나서 재생 중에 섹션 크기가 변하지 않는다 */
-  .cards-section { position: relative; padding: 120px 0; }
+  .cards-section { position: relative; padding: 120px 0; background: #fff; }
   .cards-cta-grid { margin-bottom: 56px; }
   .cards-cta-grid .qa-copy { grid-column: 1 / -1; }
   .cards-cta-grid .qa-title span { white-space: nowrap; }
@@ -545,7 +546,7 @@
      핸들 오른쪽 = 번역 전(팀이 쓰는 전문용어), 왼쪽 = 번역 후(같은 내용을 내 말로).
      같은 배치의 두 장(.tw-layer)을 겹쳐 두고, 번역 후 장을 핸들 위치(--hx)까지만 보이게 잘라 낸다(clip-path).
      높이 = 100vh + JS의 TW_TRAVEL_PX(1600). 앞 5%·뒤 20%는 멈춤 구간 */
-  .story-section { position: relative; height: calc(100vh + 1600px); }
+  .story-section { position: relative; height: calc(100vh + 1600px); background: #fff; }
   .tw-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; --hx: 0%; }
   /* isolation: 레이어마다 쌓임 순서를 따로 갖게 한다 — 없으면 안쪽 글(z-index 1)이 레이어 밖으로 새어
      번역 전 장의 글자가 번역 후 장 배경 위로 비쳐 겹쳐 보인다 */
@@ -633,6 +634,7 @@
   /* ---- 스텝 섹션: 진행 표시(탭 3칸). 스크롤을 붙잡지 않는 일반 섹션 — 화면에 들어오면 바가 시간에 맞춰 저절로 찬다 ---- */
   /* 한 화면을 통째로 쓴다 — 위아래 섹션이 같이 보이지 않게(히어로와 같은 방식). 탭 줄은 화면 가운데 */
   .steps-section {
+    background: #fff;
     position: relative;
     min-height: 100vh;
     min-height: 100dvh;
