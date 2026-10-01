@@ -1286,7 +1286,7 @@
     .qa-desc { font-size: 16px; }
     /* 모바일은 스크롤 핀(scroll-jack) 없이 일반 문서 흐름으로 노출 */
     /* 섹션 세로 리듬: 인접 섹션 패딩 합이 120px 안팎이 되도록 맞춤 */
-    /* 방식 비교: 한 화면 안에 — "요청 그대로 하면" 창은 답 한 줄짜리 요약으로 줄이고, 핸드오프 창을 크게 */
+    /* 방식 비교: 한 화면 안에 — "요청 그대로 하면" 창은 유저 질문과 답만 남긴 요약으로 줄이고, 핸드오프 창을 크게 */
     .cards-section { padding: 92px 0 20px; }
     .cards-cta-grid { margin-bottom: 20px; }
     .cards-cta-grid .qa-title { font-size: 24px; }
@@ -1294,7 +1294,8 @@
     .duel { grid-template-columns: 1fr; gap: 10px; }
     .duel-win--other .duel-head { height: 40px; font-size: 12px; }
     .duel-win--other .duel-body { padding: 10px 14px 12px; }
-    .duel-win--other .duel-me, .duel-win--other .duel-done, .duel-win--other .duel-cap { display: none; }
+    .duel-win--other .duel-done, .duel-win--other .duel-cap { display: none; }
+    .duel-win--other .duel-body { gap: 8px; }
     .duel-head { height: 44px; padding: 0 16px; font-size: 13px; }
     .duel-body { gap: 10px; padding: 14px 14px 16px; }
     .duel-me, .duel-ai { font-size: 13px; padding: 9px 13px; }
@@ -1430,6 +1431,9 @@
   @media (max-width: 768px) and (max-height: 740px) {
     .cards-cta-grid .qa-desc, .duel-cap, .duel-bars { display: none; }
     .cards-cta-grid { margin-bottom: 14px; }
+    .duel-me, .duel-ai { font-size: 12px; line-height: 1.45; padding: 7px 11px; }
+    .duel-body { gap: 8px; padding: 10px 12px 12px; }
+    .duel-head { height: 38px; }
     .pricing-head .qa-desc, .plan-incl { display: none; }
     .pricing-row { margin-top: 16px; }
     .plan { gap: 10px; padding: 20px 18px; }
