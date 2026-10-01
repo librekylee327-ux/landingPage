@@ -13,6 +13,10 @@
  *
  * 이 파일을 고친 뒤에는 [배포] → [배포 관리] → 연필 → 버전 [새 버전]으로 다시 배포해야 반영된다
  * (URL은 그대로 유지된다).
+ *
+ * ⚠️ GET으로만 받는 이유: 구글이 POST 요청은 항상 한 번 다른 주소로 돌려보내는데(302 리다이렉트),
+ * 그 과정에서 보낸 내용(이메일)이 통째로 사라진다. GET은 내용이 주소 자체에 붙어 있어 사라지지 않는다.
+ * 그래서 doPost가 아니라 doGet으로 받고, 사이트도 주소 끝에 ?email=…을 붙여 GET으로 보낸다.
  */
 
 const SHEET_NAME = 'waitlist';
@@ -22,7 +26,7 @@ function asText(v) {
   return /^[=+\-@]/.test(v) ? "'" + v : v;
 }
 
-function doPost(e) {
+function doGet(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000); // 동시에 들어온 신청이 같은 줄을 덮어쓰지 않게
   try {
@@ -43,7 +47,7 @@ function doPost(e) {
     const dup = sheet.getRange('B:B').createTextFinder(email).matchEntireCell(true).findNext();
     if (dup) return ContentService.createTextOutput('duplicate');
 
-    const referrer = String(e.parameter.referrer || '').slice(0, 500);
+    const referrer = String((e.parameter && e.parameter.referrer) || '').slice(0, 500);
     sheet.appendRow([new Date(), asText(email), asText(referrer)]);
     return ContentService.createTextOutput('ok');
   } finally {
