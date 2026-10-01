@@ -154,7 +154,12 @@
     --grid-gutter: 24px;
   }
   /* 바운스(오버스크롤) 시 다크 푸터 아래로 흰 배경이 드러나서 끔 */
-  html { overflow-x: hidden; overscroll-behavior-y: none; }
+  /* 스크롤바를 아예 숨긴다 — 색을 맞추려 하면 브라우저마다 적용 방식이 달라 믿을 수 없었다(실측).
+     숨기면 브라우저와 무관하게 항상 안 보이고, 스크롤 동작 자체(휠·트랙패드·키보드)는 그대로 된다.
+     스크롤바가 항상 없으니 히어로 재생 때 overflow-y:hidden을 걸어도 폭이 변할 일 자체가 없다 —
+     scrollbar-gutter로 자리를 예약해 둘 필요도 사라졌다 */
+  html { overflow-x: hidden; overscroll-behavior-y: none; scrollbar-width: none; -ms-overflow-style: none; }
+  html::-webkit-scrollbar { display: none; width: 0; height: 0; }
   body {
     font-family: 'Pretendard', -apple-system, sans-serif;
     background: #fff;
@@ -364,7 +369,7 @@
     align-items: center;
     gap: 6px;
     height: 100%;
-    padding: 0 6px;
+    padding: 0 8px;
     border-radius: 28px;
     /* 라이트모드 화이트 톤(기존과 동일) — 바깥 유리가 더 투명해져도 안은 항상 또렷하게 읽힌다 */
     background: rgba(255, 255, 255, 0.94);
@@ -376,8 +381,8 @@
     flex: none;
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     color: rgba(17, 24, 39, 0.5);
   }
   .hero-composer-text {
@@ -399,8 +404,8 @@
     flex: none;
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: #0158FD;
     color: #fff;
@@ -716,39 +721,78 @@
   }
 
   /* ---- 출시 알림 입력칸: 비전 섹션(어두운 배경) 안 ---- */
+  /* 화면엔 안 보이고 화면 낭독기에만 읽히는 범용 유틸리티 */
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .waitlist { width: 100%; max-width: 480px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
   .waitlist-field {
     display: flex; gap: 8px; padding: 6px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, gap 0.6s cubic-bezier(.22,1,.36,1);
   }
+  .waitlist-field.is-done { gap: 0; } /* 버튼이 입력칸 자리까지 채우면 둘 사이 틈도 사라진다 */
   .waitlist-field:focus-within { border-color: rgba(255, 255, 255, 0.5); }
   .waitlist-field input[type="email"] {
-    flex: 1; min-width: 0; padding: 0 18px;
+    flex: 1 1 0%; min-width: 0; padding: 0 18px;
     background: none; border: 0; outline: 0;
     color: #fff; font: inherit; font-size: 16px; /* 16px 미만이면 아이폰이 입력할 때 화면을 확대한다 */
+    transition: flex-grow 0.6s cubic-bezier(.22,1,.36,1), opacity 0.4s ease, padding 0.5s cubic-bezier(.22,1,.36,1), height 0.5s cubic-bezier(.22,1,.36,1), margin 0.5s cubic-bezier(.22,1,.36,1);
   }
+  /* 완료: 입력칸은 줄어들어 사라지고, 그만큼을 버튼이 넘겨받는다(아래 .waitlist-btn) */
+  .waitlist-field.is-done input[type="email"] { flex-grow: 0; opacity: 0; padding: 0; pointer-events: none; }
   .waitlist-field input[type="email"]::placeholder { color: rgba(255, 255, 255, 0.5); }
   .waitlist-btn {
-    flex: none; height: 44px; padding: 0 24px;
+    position: relative;
+    flex: 0 0 auto; height: 44px; padding: 0 24px;
     border: 0; border-radius: 999px;
     background: #fff; color: #111827;
     font: inherit; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
+    transition: background 0.5s ease, color 0.45s ease, transform 0.15s ease,
+      flex-grow 0.6s cubic-bezier(.22,1,.36,1), padding 0.5s cubic-bezier(.22,1,.36,1), width 0.5s cubic-bezier(.22,1,.36,1), min-height 0.5s cubic-bezier(.22,1,.36,1);
   }
   .waitlist-btn:hover { background: #e5e7eb; }
   .waitlist-btn:active { transform: scale(0.97); }
   .waitlist-btn:disabled { opacity: 0.6; cursor: default; }
   .waitlist-btn:focus-visible, .waitlist-consent input:focus-visible { outline: 2px solid #0158FD; outline-offset: 2px; }
+  /* 버튼 안 글자: 보내는 동안엔 숨고, 자리에 로더가 돈다 — "조용한 대기" 없이 항상 뭔가 보이게 */
+  /* 기본(=완료로 바뀔 때): 박스가 열리는 동안 잠깐 기다렸다가 글자가 뒤따라 떠오른다 */
+  /* 투명도로 보였다 안 보였다 하지 않는다 — 항상 완전히 보이고, 로딩 중만 아래 규칙으로 순간 감춘다 */
+  .wl-btn-label { display: inline-block; white-space: nowrap; }
+  /* 로딩 시작(=글자를 숨길 때)만 예외로 빠르게 — 로더가 바로 보여야 한다 */
+  /* opacity 전환 없이 즉시 감춘다 — 전환 중간에 걸려 계속 안 보이는 경우 자체가 없다 */
+  .waitlist-btn.is-loading .wl-btn-label { visibility: hidden; }
+  .wl-btn-spinner {
+    position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+    border: 2px solid rgba(17, 24, 39, 0.18); border-top-color: #111827; border-radius: 50%;
+    opacity: 0; transition: opacity 0.15s ease;
+  }
+  .waitlist-btn.is-loading .wl-btn-spinner { opacity: 1; animation: wl-spin 0.7s linear infinite; }
+  @keyframes wl-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .wl-btn-spinner { animation: none; } }
+  /* 완료: 버튼이 입력칸 자리까지 넓어지며 흰색 → 브랜드 파랑으로, 안에 완료 문구가 뜬다 */
+  .waitlist-field.is-done .waitlist-btn {
+    flex-grow: 1; background: #0158FD; color: #fff; cursor: default;
+  }
+  .waitlist-field.is-done .waitlist-btn:hover { background: #0158FD; }
+  .waitlist-field.is-done .wl-btn-label { white-space: normal; line-height: 1.45; }
   /* 봇 걸러내기용 숨은 칸 — 사람은 못 보고 봇만 채운다 */
   .waitlist-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-  .waitlist-consent { display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255, 255, 255, 0.75); font-size: 13px; cursor: pointer; }
+  .waitlist-consent {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: rgba(255, 255, 255, 0.85); font-size: 13px; cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.35s ease;
+  }
+  /* 신청 완료되면 동의 체크박스는 더 이상 할 일이 없다 — 자리는 그대로 두고 흐려지기만 한다.
+     칸 자체를 접으면(height·margin) 그 아래 내용이 끌려 올라와 화면이 움직이는 것처럼 보인다 */
+  .waitlist-field.is-done ~ .waitlist-consent { opacity: 0; pointer-events: none; }
   .waitlist-consent input { width: 16px; height: 16px; accent-color: #0158FD; }
-  .waitlist-note { color: rgba(255, 255, 255, 0.45); font-size: 12px; line-height: 1.6; }
+  .waitlist-note { color: rgba(255, 255, 255, 0.7); font-size: 12px; line-height: 1.6; }
   .waitlist-msg { min-height: 1.6em; color: #fff; font-size: 14px; }
   .waitlist-msg.is-error { color: #fca5a5; }
+  .waitlist-msg.is-silent { color: transparent; } /* 자리는 유지, 화면엔 안 보이고 화면 낭독기에만 읽힌다 */
 
   /* ---- FAQ: 답변은 HTML에 그대로 두고 <details>로 접기만 함 — 검색·AI 수집기가 본문으로 읽음 ---- */
   .faq-section { padding: 80px 0 120px; background: #fff; }
@@ -875,9 +919,14 @@
     .faq-a { padding: 0 0 20px; }
     .vision-section { padding: 96px 0; }
     /* 폰: 입력칸·버튼을 위아래로. 둘 다 터치 영역 52px 이상, 입력칸은 안쪽 위아래 여백을 넉넉히 */
-    .waitlist-field { flex-direction: column; gap: 8px; padding: 8px; border-radius: 28px; }
+    /* 입력칸+버튼이 쓰는 세로 공간(104px)을 처음부터 고정해 둔다 — 완료 시 버튼이 늘어나도
+       이 상자 자체는 커지지 않아 아래 내용이 밀리지 않는다(화면이 움직이지 않는다) */
+    .waitlist-field { flex-direction: column; justify-content: center; gap: 8px; padding: 8px; min-height: 120px; border-radius: 28px; }
+    .waitlist-field.is-done { gap: 0; }
     .waitlist-field input[type="email"] { flex: none; height: 48px; padding: 0 20px; }
+    .waitlist-field.is-done input[type="email"] { height: 0; margin: 0; }
     .waitlist-btn { height: 48px; }
+    .waitlist-field.is-done .waitlist-btn { width: 100%; height: auto; padding: 14px 20px; }
     .footer { padding: 64px 0; }
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
        1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
@@ -1139,7 +1188,7 @@
           <div class="waitlist-field">
             <input type="email" name="email" id="waitlistEmail" placeholder="이메일 주소" autocomplete="email" aria-label="이메일 주소" required>
             <input type="text" name="company" class="waitlist-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-            <button type="submit" class="waitlist-btn">출시 알림 받기</button>
+            <button type="submit" class="waitlist-btn"><span class="wl-btn-label">출시 알림 받기</span><span class="wl-btn-spinner" aria-hidden="true"></span></button>
           </div>
           <label class="waitlist-consent"><input type="checkbox" name="consent" required> 출시 알림을 위한 이메일 수집·이용에 동의합니다 (필수)</label>
           <p class="waitlist-note">수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 파기<br>동의하지 않으면 알림을 받을 수 없습니다.</p>
@@ -1176,6 +1225,16 @@
   </footer>
 
 <script>
+  // 히어로 잠금 상태 — 파일 여러 곳(스텝 섹션 스크롤 처리 등)이 "지금 히어로가 스크롤을 붙잡고 있나"를
+  // 참조해 불필요한 레이아웃 계산을 건너뛴다. 그 참조가 스크립트 실행 중 바로(동기적으로) 일어나는
+  // 곳이 있어, 맨 위에서 가장 먼저 초기화해 둔다(아래로 내려 두면 아직 선언 전이라 오류가 난다)
+  let heroState = 'start'; // start | playing | end | rewinding
+  const isHeroLocked = () => heroState === 'playing' || heroState === 'rewinding';
+  // 잠긴 동안은 스크롤 자체를 못 하게 막는다(overflow:hidden) — 이벤트를 막는 방식(preventDefault)만으로는
+  // 스크롤바를 직접 끌어 내리거나 트랙패드를 세게 밀 때 막아내지 못하고 한두 프레임 새어나가며 화면이
+  // 번쩍인다. overflow:hidden은 브라우저 차원에서 스크롤할 대상 자체를 없애 어떤 입력으로도 안 새어나간다
+  const setScrollLock = (on) => { document.documentElement.style.overflowY = on ? 'hidden' : ''; };
+
   const MOBILE = window.innerWidth <= 768; // 모바일은 스크롤 스크럽 없이 고정 카드로만 노출
   // MOBILE은 로드 시점에 한 번만 고정되므로, 리사이즈로 768px 경계를 넘으면 재판정하도록 새로고침
   window.matchMedia('(max-width: 768px)').addEventListener('change', () => location.reload());
@@ -1282,6 +1341,10 @@
   let stepActive = -1; // -1로 시작해 최초 호출이 항상 반영되도록 (첫 스텝 영상 재생 포함)
 
   function updateSteps() {
+    // 히어로가 스크롤을 붙잡고 있는 동안은 이 섹션과 아무 관계가 없다 — 그런데도 스크롤/휠 이벤트마다
+    // getBoundingClientRect()(레이아웃 강제 계산)를 해 왔다. 무한 회전 휠 마우스처럼 짧은 시간에
+    // 이벤트가 수십~수백 번 쏟아지는 경우 이게 쌓여 버벅임·깜빡임으로 나타난다
+    if (isHeroLocked()) return;
     const consumed = -stepsOuter.getBoundingClientRect().top;
     const next = Math.min(stepItems.length - 1, Math.max(0, Math.floor(consumed / STEP_PX)));
     if (next === stepActive) return;
@@ -1317,8 +1380,10 @@
   // 구글 Apps Script 웹 앱 배포 URL. 배포 방법은 apps-script/waitlist.gs 맨 위 주석
   const WAITLIST_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw7K6DQyCbao6HA6UA8ImBsHkZWe7PwTWuNDqrVKG4QPiPJrZ-Pg71QLv9DqTIzZQzY/exec';
   const waitlistForm = document.getElementById('waitlist');
+  const waitlistField = waitlistForm.querySelector('.waitlist-field');
   const waitlistMsg = waitlistForm.querySelector('.waitlist-msg');
   const waitlistBtn = waitlistForm.querySelector('.waitlist-btn');
+  const waitlistBtnLabel = waitlistBtn.querySelector('.wl-btn-label');
   function setWaitlistMsg(text, isError) {
     waitlistMsg.textContent = text;
     waitlistMsg.classList.toggle('is-error', !!isError);
@@ -1331,21 +1396,37 @@
     if (waitlistForm.company.value) return; // 숨은 칸이 채워졌으면 봇
     // 주소가 비어 있으면 fetch('')가 이 페이지로 보내져 성공처럼 보인다 — 막는다
     if (!WAITLIST_ENDPOINT) return setWaitlistMsg('준비중입니다. 잠시 후 다시 시도해 주세요.', true);
+    // 보내는 동안 조용히 기다리지 않게 — 버튼 글자 대신 로더를 돌린다
     waitlistBtn.disabled = true;
+    waitlistBtn.classList.add('is-loading');
+    waitlistForm.email.readOnly = true;
     setWaitlistMsg('');
     try {
       // GET으로 보낸다 — POST는 구글이 중간에 다른 주소로 돌려보내는데(302) 그 과정에서 보낸 내용이
       // 사라진다(apps-script/waitlist.gs 상단 설명). GET은 내용이 주소에 붙어 있어 사라지지 않는다.
       // Apps Script는 CORS 응답 헤더를 못 붙여서 no-cors로 보낸다 — 응답 본문은 못 읽고, 네트워크 실패만 잡힌다
+      // 구글 쪽이 느려지거나 멈추면(락 경합 등) fetch가 끝없이 안 끝날 수 있다 — 10초 넘으면 끊어서
+      // "무한 로딩"이 되지 않게 한다
       const qs = new URLSearchParams({ email, referrer: document.referrer || 'direct' });
-      await fetch(`${WAITLIST_ENDPOINT}?${qs}`, { method: 'GET', mode: 'no-cors' });
-      setWaitlistMsg('신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.');
+      const timeout = AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined;
+      await fetch(`${WAITLIST_ENDPOINT}?${qs}`, { method: 'GET', mode: 'no-cors', signal: timeout });
+      // 완료: 버튼이 입력칸 자리를 채우며 문구로 바뀐다. 화면엔 안 보이는 상태 문구도 같이 갱신해
+      // 화면 낭독기 사용자에게도 완료가 전달되게 한다
+      const DONE_TEXT = '신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.';
+      waitlistBtnLabel.textContent = DONE_TEXT;
+      waitlistBtn.classList.remove('is-loading');
+      waitlistField.classList.add('is-done');
+      waitlistForm.consent.disabled = true; // 화면에서 흐려진 것과 맞춰 키보드 이동·클릭도 더는 안 걸리게
+      waitlistMsg.textContent = DONE_TEXT;
+      waitlistMsg.classList.add('is-silent'); // 자리는 그대로, 글자만 안 보이게(화면 낭독기에는 그대로 읽힌다)
       waitlistForm.reset();
       if (typeof gtag === 'function') gtag('event', 'waitlist_submit');
     } catch (err) {
-      setWaitlistMsg('보내지 못했습니다. 잠시 후 다시 시도해 주세요.', true);
-    } finally {
+      waitlistBtn.classList.remove('is-loading');
       waitlistBtn.disabled = false;
+      waitlistForm.email.readOnly = false;
+      const timedOut = err && (err.name === 'TimeoutError' || err.name === 'AbortError');
+      setWaitlistMsg(timedOut ? '응답이 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.' : '보내지 못했습니다. 잠시 후 다시 시도해 주세요.', true);
     }
   });
 
@@ -1420,10 +1501,8 @@
   const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  let heroState = 'start'; // start | playing | end | rewinding
   let morphP = 0;
   let typed = 0; // 0 = 안내 문구, 1~n = 쓴 글자 수
-  const isHeroLocked = () => heroState === 'playing' || heroState === 'rewinding';
 
   function renderHero(p) {
     morphP = p;
@@ -1433,8 +1512,13 @@
     const maxW = Math.max(256, Math.min(672, avail));
     composer.style.width = lerp(256, maxW, e) + 'px';
     composer.style.height = lerp(56, 74, e) + 'px';
-    composer.style.padding = lerp(0, 4, e) + 'px'; // 바깥 유리 프레임 두께(얇게)
-    composer.style.borderRadius = lerp(28, 36, e) + 'px';
+    const outerPad = lerp(0, 4, e); // 바깥 유리 프레임 두께(얇게)
+    const outerRadius = lerp(28, 36, e);
+    composer.style.padding = outerPad + 'px';
+    composer.style.borderRadius = outerRadius + 'px';
+    // 안쪽 박스 라운드 = 바깥 라운드 − 바깥 프레임 두께라야 두 모서리가 같은 중심에서 동심원으로 겹친다.
+    // 고정값(28px)으로 두면 바깥이 36px까지 커지는 동안 안쪽만 그대로라 모서리가 어긋나 보인다
+    composerInner.style.borderRadius = Math.max(0, outerRadius - outerPad) + 'px';
     // 파랑(1, 88, 253) → 흰색
     // 파랑(불투명) → 리퀴드 글래스(흰색 14% + 뒤 흐림)
     composer.style.backgroundColor = `rgba(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))}, ${lerp(1, 0.08, e).toFixed(3)})`;
@@ -1496,6 +1580,7 @@
     if (heroState !== 'start') return;
     if (reduceMotion) { showEnd(); return; }
     heroState = 'playing';
+    setScrollLock(true);
     window.scrollTo(0, 0);
     playHeroVideo();
     await tween(morphP, 1, MORPH_MS);
@@ -1508,6 +1593,7 @@
     composerSend.classList.add('is-ready'); // 눌린 뒤 한 번 반짝
     await wait(POST_SEND_MS);
     heroState = 'end';
+    setScrollLock(false);
     // 보내면 바로 아래 섹션으로 — 「보냈더니 일이 시작된다」로 이어지게
     const next = document.querySelector('.story-section');
     if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
@@ -1533,12 +1619,14 @@
   async function rewindHeroIntro() {
     if (heroState !== 'end') return;
     heroState = 'rewinding';
+    setScrollLock(true);
     composerSend.classList.remove('is-ready', 'is-pressed');
     typed = 0;
     renderTyped(false);
     rewindHeroVideo(REWIND_MS);
     await tween(morphP, 0, REWIND_MS);
     heroState = 'start';
+    setScrollLock(false);
   }
 
   // 아래로 버튼 — 재생 전이면 재생(끝나면 알아서 다음 섹션으로), 이미 봤으면 바로 다음 섹션으로
@@ -1606,6 +1694,9 @@
   const heroJourneyEl = document.getElementById('heroJourney');
   const gnbWordmark = document.querySelector('.gnb-logo img:last-child');
   function syncGnbOnHero() {
+    // 히어로가 잠겨 있는 동안은 "히어로 위"라는 답이 바뀔 수 없다(스크롤이 0에 고정) — 매번 다시 재지 않는다.
+    // 같은 이유로 여기도 레이아웃 강제 계산(getBoundingClientRect)을 스크롤 이벤트마다 반복하던 자리였다
+    if (isHeroLocked()) return;
     const onHero = heroJourneyEl.getBoundingClientRect().bottom > 84 / 2; // GNB 높이의 절반까지 히어로가 남아 있으면
     gnb.classList.toggle('is-on-hero', onHero);
     gnb.classList.toggle('is-at-top', window.scrollY < 10);
