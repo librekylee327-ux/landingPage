@@ -1384,6 +1384,9 @@
     /* 카드 폭은 정수 px(화면 − 양옆 여백 20 − 다음 카드 엿보기 28), 맞춤 기준은 카드 왼쪽 끝 —
        %폭에 가운데 맞춤이면 맞출 자리가 소수점이 돼, 폰에서 세로 스크롤 중 주소창이 들락날락할 때마다 좌우로 떨렸다 */
     .plan { flex: 0 0 calc(100vw - 68px); gap: 14px; padding: 24px 20px; scroll-snap-align: start; }
+    /* 카드마다 자기 레이어로 그린다 — 아이폰 사파리는 세로 관성 스크롤 중 가로 스크롤 줄 안의 일반 콘텐츠를 박자가 어긋나게 다시 그려
+       위아래로 떨렸다(이미 isolation으로 레이어가 따로 있던 Starter만 멀쩡했다) */
+    .plan { isolation: isolate; transform: translateZ(0); backface-visibility: hidden; }
     .plan-price b { font-size: 34px; }
     .plan-list { gap: 9px; }
     .plan-list li { font-size: 14px; }
