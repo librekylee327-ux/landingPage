@@ -1289,12 +1289,27 @@
     .cards-cta-grid { margin-bottom: 40px; }
     /* nowrap이면 24px 폰트가 375px 화면을 넘어서 잘림 */
     .cards-cta-grid .qa-title span { white-space: normal; }
-    /* 스텝 섹션은 모바일에서 세로로 쌓기만 하고 진행 인터랙션은 그대로 */
-    .steps-section { padding: 96px 0 64px; } /* 위 여백이 GNB(84px)보다 커야 제목이 안 가려진다 */
-    .steps-glow, .steps-section[data-step] .steps-glow { --gx: 50vw; width: 560px; height: 560px; } /* 폰은 탭이 세로라 가운데에서 색만 바뀐다 */
-    .steps-list { grid-template-columns: 1fr; gap: 8px; }
-    .step-title { white-space: normal; }
-    .steps-stage { grid-column: 1 / -1; height: 420px; min-height: 0; margin-top: 16px; }
+    /* 폰: 푸터를 뺀 섹션은 한 화면에 하나씩 — 최소 한 화면 높이, 내용은 세로 가운데(내용이 더 길면 그만큼 길어진다).
+       svh = 주소창이 다 보일 때의 화면 높이(스크롤하며 주소창이 들어가도 섹션 높이가 출렁이지 않게) */
+    .steps-section, .cards-section, .pricing-section, .faq-section, .vision-section {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    /* 스텝 섹션: 진행 표시를 한 줄 3칸으로 줄이고(제목만, 설명은 숨김) 남는 높이를 전부 장면에 — 진행 표시와 장면이 한 화면에 같이 보인다 */
+    .steps-section { padding: 92px 0 20px; justify-content: flex-start; } /* 위 여백이 GNB(84px)보다 커야 진행 표시가 안 가려진다 */
+    .steps-glow, .steps-section[data-step] .steps-glow { --gx: 50vw; width: 560px; height: 560px; }
+    .steps-list { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .step-item { padding: 10px 8px 12px; border-radius: 10px 10px 0 0; }
+    .step-head { align-items: flex-start; gap: 4px; }
+    .step-mark { min-width: 14px; font-size: 11px; line-height: 1.6; }
+    .step-check { width: 12px; height: 12px; transform: translateY(3px); }
+    .step-title { font-size: 13px; line-height: 1.35; white-space: normal; letter-spacing: -0.2px; }
+    .step-desc { display: none; }
+    /* 장면 높이 = 화면 − 위 여백(92) − 아래 여백(20) − 진행 표시(약 70) − 그리드 줄 간격(16) − 위 마진(12) */
+    .steps-stage { grid-column: 1 / -1; height: calc(100svh - 92px - 20px - 70px - 16px - 12px); min-height: 360px; margin-top: 12px; }
     /* 02·03 장면은 폰에서 좁은 폭용으로 다시 짠다(줄이는 배율을 덜 쓰려고) */
     .decide { width: 420px; height: 500px; }
     .dc-bubble { left: 0; width: 420px; flex-direction: column; gap: 14px; transform-origin: 50% 100%; }
@@ -2446,9 +2461,16 @@
   function playHeroVideo() {
     if (!heroVideo.duration) return;
     heroVideo.playbackRate = HERO_VIDEO_RATE;
-    heroVideo.currentTime = 0;
+    // 이미 맨 앞이면 다시 찾아가지 않는다 — 찾아가는 순간 프레임이 비어 한 번 번쩍인다
+    if (heroVideo.currentTime !== 0) heroVideo.currentTime = 0;
     heroVideo.play().catch(() => {});
   }
+  // 첫 스크롤 번쩍임 방지: 포스터 이미지는 재생을 시작하는 순간 영상 첫 프레임으로 갈아 끼워지는데,
+  // 둘의 밝기·압축이 달라 그 순간 번쩍인다. 영상이 준비되는 즉시(로드 직후, 아직 아무도 안 움직일 때) 포스터를 떼어
+  // 영상 첫 프레임이 그대로 보이게 해 둔다 — 첫 스크롤에선 갈아 끼울 게 없다
+  function dropHeroPoster() { heroVideo.removeAttribute('poster'); }
+  if (heroVideo.readyState >= 2) dropHeroPoster();
+  else heroVideo.addEventListener('loadeddata', dropHeroPoster, { once: true });
   function rewindHeroVideo(ms) {
     heroVideo.pause();
     const from = heroVideo.currentTime;
