@@ -176,7 +176,9 @@
      숨기면 브라우저와 무관하게 항상 안 보이고, 스크롤 동작 자체(휠·트랙패드·키보드)는 그대로 된다.
      스크롤바가 항상 없으니 히어로 재생 때 overflow-y:hidden을 걸어도 폭이 변할 일 자체가 없다 —
      scrollbar-gutter로 자리를 예약해 둘 필요도 사라졌다 */
-  html { overflow-x: hidden; overscroll-behavior-y: none; scrollbar-width: none; -ms-overflow-style: none; }
+  /* 페이지 바깥(위아래로 당겼을 때 · 폰 하단 주소창 뒤)은 히어로·푸터와 같은 남색 — 흰색이면 어두운 푸터 아래가 잘려 보인다.
+     섹션들의 흰 바탕은 body가 따로 칠한다 */
+  html { background: #040a1c; overflow-x: hidden; overscroll-behavior-y: none; scrollbar-width: none; -ms-overflow-style: none; }
   html::-webkit-scrollbar { display: none; width: 0; height: 0; }
   body {
     /* 안전망: 어떤 장식이 화면 밖으로 삐져나가도 페이지 폭이 넓어지지 않게(넓어지면 모바일에서 고정 GNB 오른쪽이 화면 밖으로 밀린다).
