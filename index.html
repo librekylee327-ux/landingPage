@@ -217,6 +217,8 @@
   .gnb.is-on-hero .gnb-btn--solid:hover { background: #e5e7eb; }
   /* 처음 랜딩(맨 위)에서는 GNB 뒤를 흐리게·어둡게 하지 않는다 — 천장 조명이 그대로 보이게 */
   .gnb.is-at-top { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* 히어로 위에서는 배경 블러 없이 — 어두운 방 화면이 GNB 뒤로 그대로 보이게 */
+  .gnb.is-on-hero { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .gnb-logo { cursor: pointer; }
 
   /* ---- 토스트: 리퀴드 글래스 ---- */
@@ -884,7 +886,6 @@
     .hero-composer-slot { margin-top: 28px; }
     .hero-sticky { padding-bottom: 80px; } /* 폰은 40px만 올린다 */
     .hero-down { bottom: 24px; width: 44px; height: 44px; }
-    .gnb.is-on-hero { background: rgba(4, 10, 28, 0.45); }
     .hero-desc { font-size: 15px; }
     .hero-desc br { display: none; }
     /* 데스크톱 본문 폭(13px)은 모바일에서 너무 작음 — 본문 16px 유지 */
@@ -1455,7 +1456,7 @@
   });
 
   // ---- 히어로: 첫 스크롤 → (잠금) 알약→입력창 변신 → 타이핑 → 보내기 눌림 → (해제) ----
-  const MORPH_MS = 700;       // 알약 → 입력창
+  const MORPH_MS = 480;       // 알약 → 입력창
   const REWIND_MS = 450;      // 입력창 → 알약(거꾸로)
   const TYPE_MS = 55;         // 한 글자당
   const PRE_SEND_MS = 350;    // 다 쓰고 보내기 누르기 전 한 박자
@@ -1583,8 +1584,10 @@
     setScrollLock(true);
     window.scrollTo(0, 0);
     playHeroVideo();
-    await tween(morphP, 1, MORPH_MS);
-    await typeAll();
+    // 입력창 안쪽이 떠오르기 시작할 때(p≈0.45) 타이핑을 같이 시작 — 변신이 끝날 때까지 기다리지 않는다
+    const morphing = tween(morphP, 1, MORPH_MS);
+    await wait(MORPH_MS * 0.45);
+    await Promise.all([morphing, typeAll()]);
     await wait(PRE_SEND_MS);
     renderTyped(false); // 보내는 순간 커서는 뗀다
     composerSend.classList.add('is-pressed');
