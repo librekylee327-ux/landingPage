@@ -1267,13 +1267,6 @@
   /* ---- 모바일 대응 ---- */
   @media (max-width: 768px) {
     :root { --page-margin: 20px; --grid-gutter: 16px; }
-    /* 폰: 섹션 경계 근처에서 멈추면 섹션 시작점에 탁 맞춰 한 섹션이 온전히 보이게(proximity — 스토리 와이프처럼
-       스크롤로 진행되는 긴 섹션 중간에선 끌어당기지 않는다). 자동 스크롤(scrollToY) 중엔 JS가 잠시 끈다 */
-    html { scroll-snap-type: y proximity; }
-    /* 히어로는 스냅 지점에서 뺀다 — 맨 위(0)로 끌어당기면 히어로가 "위로 올라왔다"며 처음으로 되감아 아래로 내려갈 수 없게 된다 */
-    .steps-section, .story-section, .cards-section, .pricing-section, .faq-section, .vision-section { scroll-snap-align: start; }
-    .tw-snap-end { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; scroll-snap-align: end; pointer-events: none; } /* 스토리 와이프가 끝나 고정이 풀리는 지점 */
-    .footer { scroll-snap-align: end; }
     .grid > [class^="col-"],
     .grid > [class*=" col-"] { grid-column: span 12; }
     /* 12컬럼 그리드로는 로고/버튼이 트랙보다 넓어져 서로 겹침 — 좌우 양끝 배치로 단순화 */
@@ -1676,7 +1669,6 @@
       </div>
       <span class="tw-handle" aria-hidden="true"></span>
     </div>
-    <span class="tw-snap-end" aria-hidden="true"></span>
   </section>
 
   <section class="cards-section" id="duelSection">
@@ -2692,20 +2684,16 @@
     const from = window.scrollY;
     const t0 = performance.now();
     const id = ++autoScrollId;
-    // 폰의 섹션 스냅이 켜져 있으면 프레임마다 옮기는 위치를 끌어당겨 자동 스크롤이 망가진다 — 도는 동안만 끈다
-    const snapOff = () => { document.documentElement.style.scrollSnapType = 'none'; };
-    const snapOn = () => { document.documentElement.style.scrollSnapType = ''; };
-    const stop = () => { autoScrollId++; autoScrolling = false; snapOn(); };
+    const stop = () => { autoScrollId++; autoScrolling = false; };
     window.addEventListener('wheel', stop, { once: true, passive: true });
     window.addEventListener('touchstart', stop, { once: true, passive: true });
     autoScrolling = true;
-    snapOff();
     (function step(now) {
       if (id !== autoScrollId) return;
       const t = clamp01((now - t0) / ms);
       window.scrollTo(0, lerp(from, to, easeInOut(t)));
       if (t < 1) requestAnimationFrame(step);
-      else { autoScrolling = false; snapOn(); window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); }
+      else { autoScrolling = false; window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); }
     })(t0);
   }
   async function rewindHeroIntro() {
