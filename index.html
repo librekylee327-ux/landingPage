@@ -322,13 +322,27 @@
     max-width: calc(100vw - 32px);
     height: 56px;              /* → 74px */
     padding: 0;                /* → 8px */
-    border: 1px solid rgba(17, 24, 39, 0);
+    border: 1px solid rgba(255, 255, 255, 0);
     border-radius: 28px;       /* → 36px */
-    background: #0158FD;       /* → 흰색 */
+    background: #0158FD;       /* → 리퀴드 글래스(반투명 흰색 + 뒤 흐림) */
     box-shadow: 0 0 40px rgba(1, 88, 253, 0.55);
+    /* 알약일 땐 파랑이 불투명해 안 보이고, 입력창이 되며 배경이 투명해질수록 뒤의 방 영상이 흐려져 비친다 */
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
     text-decoration: none;
     overflow: hidden;
     cursor: pointer;
+    --e: 0;                    /* JS가 넣는 변신 진행률 */
+  }
+  /* 유리 윗면의 반사광 — 왼쪽 위에서 비스듬히 들어오는 빛 */
+  .hero-composer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.06) 38%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.08) 100%);
+    opacity: var(--e);
+    pointer-events: none;
   }
   .hero-composer:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   .hero-morph-cta {
@@ -352,7 +366,9 @@
     height: 100%;
     padding: 0 8px;
     border-radius: 28px;
-    background: rgba(17, 24, 39, 0.04);
+    /* 글자가 놓이는 안쪽 칸은 어두운 남색 유리 — 뒤 빛기둥이 가장 밝을 때도 흰 글자 대비 4.5:1 이상 */
+    background: rgba(4, 10, 32, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
     opacity: 0;
     text-align: left;
   }
@@ -362,18 +378,23 @@
     place-items: center;
     width: 40px;
     height: 40px;
-    color: rgba(17, 24, 39, 0.55);
+    color: rgba(255, 255, 255, 0.7);
   }
   .hero-composer-text {
     flex: 1;
     min-width: 0;
     overflow: hidden;          /* 넘치면 JS가 끝으로 밀어 방금 쓴 글자가 보이게 한다(실제 입력창처럼) */
     white-space: nowrap;
-    color: #111827;
+    color: #fff;
     font-size: 16px;
     line-height: 24px;
   }
-  .hero-composer-text[data-empty="true"] { color: #9ca3af; }
+  .hero-composer-text[data-empty="true"] { color: rgba(255, 255, 255, 0.55); }
+  /* 문장이 칸보다 길어 앞부분이 밀려나면, 잘린 글자가 보이지 않게 왼쪽 끝을 흐린다 */
+  .hero-composer-text.is-overflow {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 28px);
+    mask-image: linear-gradient(to right, transparent 0, #000 28px);
+  }
   .hero-composer-send {
     flex: none;
     display: grid;
@@ -397,7 +418,7 @@
     height: 1.05em;
     margin-left: 1px;
     vertical-align: -0.15em;
-    background: #0158FD;
+    background: #9dbbff;
     animation: caret-blink 1s steps(1) infinite;
   }
   @keyframes caret-blink { 50% { opacity: 0; } }
@@ -707,7 +728,7 @@
   .waitlist-field input[type="email"] {
     flex: 1; min-width: 0; padding: 0 18px;
     background: none; border: 0; outline: 0;
-    color: #fff; font: inherit; font-size: 15px;
+    color: #fff; font: inherit; font-size: 16px; /* 16px 미만이면 아이폰이 입력할 때 화면을 확대한다 */
   }
   .waitlist-field input[type="email"]::placeholder { color: rgba(255, 255, 255, 0.5); }
   .waitlist-btn {
@@ -851,8 +872,10 @@
     .faq-q { padding: 20px 0; font-size: 16px; }
     .faq-a { padding: 0 0 20px; }
     .vision-section { padding: 96px 0; }
-    .waitlist-field { flex-direction: column; border-radius: 24px; }
-    .waitlist-field input[type="email"] { height: 44px; }
+    /* 폰: 입력칸·버튼을 위아래로. 둘 다 터치 영역 52px 이상, 입력칸은 안쪽 위아래 여백을 넉넉히 */
+    .waitlist-field { flex-direction: column; gap: 8px; padding: 8px; border-radius: 28px; }
+    .waitlist-field input[type="email"] { flex: none; height: 56px; padding: 0 20px; }
+    .waitlist-btn { height: 52px; }
     .footer { padding: 64px 0; }
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
        1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
@@ -1412,17 +1435,21 @@
     composer.style.padding = lerp(0, 8, e) + 'px';
     composer.style.borderRadius = lerp(28, 36, e) + 'px';
     // 파랑(1, 88, 253) → 흰색
-    composer.style.backgroundColor = `rgb(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))})`;
-    composer.style.borderColor = `rgba(17, 24, 39, ${(0.08 * e).toFixed(3)})`;
+    // 파랑(불투명) → 리퀴드 글래스(흰색 14% + 뒤 흐림)
+    composer.style.backgroundColor = `rgba(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))}, ${lerp(1, 0.14, e).toFixed(3)})`;
+    composer.style.borderColor = `rgba(255, 255, 255, ${(0.32 * e).toFixed(3)})`;
+    composer.style.setProperty('--e', e.toFixed(3));
     morphCta.style.opacity = 1 - clamp01(p / 0.35);
     composerInner.style.opacity = clamp01((p - 0.45) / 0.45);
     heroContent.style.transform = `translateY(${-HERO_LIFT_PX * e}px)`;
     heroSticky.style.setProperty('--glow', e.toFixed(3));
     // 알약일 땐 파란 빛을 두르고, 입력창이 되면 그림자로 바뀐다
-    composer.style.boxShadow = `0 0 ${Math.round(40 * (1 - e))}px rgba(1, 88, 253, ${(0.55 * (1 - e)).toFixed(3)}), 0 16px 44px -12px rgba(0, 0, 0, ${(0.45 * e).toFixed(3)})`;
+    // 알약의 파란 빛 → 유리의 안쪽 윗선(빛 받는 가장자리) + 아래 그림자
+    composer.style.boxShadow = `0 0 ${Math.round(40 * (1 - e))}px rgba(1, 88, 253, ${(0.55 * (1 - e)).toFixed(3)}), inset 0 1px 0 rgba(255, 255, 255, ${(0.5 * e).toFixed(3)}), inset 0 -1px 0 rgba(255, 255, 255, ${(0.12 * e).toFixed(3)}), 0 18px 50px -12px rgba(0, 0, 0, ${(0.5 * e).toFixed(3)})`;
   }
   function renderTyped(showCaret) {
     if (typed === 0) {
+      composerText.classList.remove('is-overflow');
       composerText.dataset.empty = 'true';
       composerText.textContent = composerPlaceholder;
       return;
@@ -1435,6 +1462,7 @@
       composerText.appendChild(caret);
     }
     composerText.scrollLeft = composerText.scrollWidth; // 넘치면 방금 쓴 글자가 보이게(실제 입력창처럼)
+    composerText.classList.toggle('is-overflow', composerText.scrollWidth > composerText.clientWidth + 1);
   }
   function tween(from, to, ms) {
     return new Promise((resolve) => {
