@@ -1286,10 +1286,26 @@
     .qa-desc { font-size: 16px; }
     /* 모바일은 스크롤 핀(scroll-jack) 없이 일반 문서 흐름으로 노출 */
     /* 섹션 세로 리듬: 인접 섹션 패딩 합이 120px 안팎이 되도록 맞춤 */
-    .cards-section { padding: 64px 0; }
-    .duel { grid-template-columns: 1fr; gap: 28px; }
-    .duel-tile b { font-size: 24px; }
-    .cards-cta-grid { margin-bottom: 40px; }
+    /* 방식 비교: 한 화면 안에 — "요청 그대로 하면" 창은 답 한 줄짜리 요약으로 줄이고, 핸드오프 창을 크게 */
+    .cards-section { padding: 92px 0 20px; }
+    .cards-cta-grid { margin-bottom: 20px; }
+    .cards-cta-grid .qa-title { font-size: 24px; }
+    .cards-cta-grid .qa-desc { font-size: 14px; }
+    .duel { grid-template-columns: 1fr; gap: 10px; }
+    .duel-win--other .duel-head { height: 40px; font-size: 12px; }
+    .duel-win--other .duel-body { padding: 10px 14px 12px; }
+    .duel-win--other .duel-me, .duel-win--other .duel-done, .duel-win--other .duel-cap { display: none; }
+    .duel-head { height: 44px; padding: 0 16px; font-size: 13px; }
+    .duel-body { gap: 10px; padding: 14px 14px 16px; }
+    .duel-me, .duel-ai { font-size: 13px; padding: 9px 13px; }
+    .duel-ai.is-typing::after { top: 16px; left: 13px; }
+    .duel-tiles { gap: 6px; }
+    .duel-tile { gap: 6px; padding: 10px 12px; border-radius: 14px; }
+    .duel-tile span { font-size: 11px; }
+    .duel-tile b { font-size: 22px; }
+    .duel-bars { height: 26px; }
+    .duel-btn { padding: 8px 13px; font-size: 12px; }
+    .duel-cap { margin-top: 8px; font-size: 13px; }
     /* nowrap이면 24px 폰트가 375px 화면을 넘어서 잘림 */
     .cards-cta-grid .qa-title span { white-space: normal; }
     /* 폰: 푸터를 뺀 섹션은 한 화면에 하나씩 — 최소 한 화면 높이, 내용은 세로 가운데(내용이 더 길면 그만큼 길어진다).
@@ -1342,9 +1358,28 @@
     .tw-body p { font-size: 14px; }
     .tw-word { font-size: calc(var(--fs, calc(13px + var(--d) * 34px)) * 0.7); }
     .tw-word:nth-of-type(even) { display: none; } /* 폭이 좁아 반만 */
-    .pricing-section { padding: 64px 0; }
-    .pricing-row { display: block; margin-top: 40px; }
-    .plan:not(:last-child) { margin-bottom: 20px; }
+    /* 요금: 한 화면 안에 — 플랜 카드는 옆으로 밀어 넘기는 가로 캐러셀(다음 카드가 살짝 보여 넘길 수 있다는 걸 알린다).
+       처음엔 추천 플랜(Starter)이 가운데(JS) */
+    .pricing-section { padding: 92px 0 20px; }
+    .pricing-head .qa-title { font-size: 24px; }
+    .pricing-head .qa-desc { font-size: 14px; }
+    .pricing-head .qa-desc br { display: none; }
+    .pricing-row {
+      display: flex;
+      gap: 12px;
+      margin: 24px calc(-1 * var(--page-margin)) 0;
+      padding: 0 var(--page-margin);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding: 0 var(--page-margin);
+      scrollbar-width: none;
+    }
+    .pricing-row::-webkit-scrollbar { display: none; }
+    .plan { flex: 0 0 84%; gap: 14px; padding: 24px 20px; scroll-snap-align: center; }
+    .plan-price b { font-size: 34px; }
+    .plan-list { gap: 9px; }
+    .plan-list li { font-size: 14px; }
+    .pricing-addon { margin-top: 16px; font-size: 13px; }
     /* FAQ는 정확히 한 화면 — 제목 아래 남는 높이를 채팅 창이, 채팅 창 안에선 대화창이 채운다(JS도 폰에선 높이를 재지 않는다) */
     .faq-section { height: 100vh; height: 100svh; padding: 96px 0 20px; justify-content: flex-start; }
     .faq-section > .grid { flex: 1; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
@@ -1386,6 +1421,17 @@
     .footer-copy { justify-self: center; align-items: center; }
     .footer-rep-row { align-items: center; }
     .footer-rep-info, .footer-contact-group { justify-content: center; }
+  }
+  /* 세로가 짧은 폰(높이 740px 이하, 아이폰 SE 등): 한 화면에 들어가도록 보조 문구를 접는다 */
+  @media (max-width: 768px) and (max-height: 740px) {
+    .cards-cta-grid .qa-desc, .duel-cap, .duel-bars { display: none; }
+    .cards-cta-grid { margin-bottom: 14px; }
+    .pricing-head .qa-desc, .plan-incl { display: none; }
+    .pricing-row { margin-top: 16px; }
+    .plan { gap: 10px; padding: 20px 18px; }
+    .plan-list { gap: 6px; }
+    .plan-list li { font-size: 13px; }
+    .pricing-addon { margin-top: 12px; font-size: 12px; line-height: 1.5; }
   }
 
 </style>
@@ -1680,7 +1726,7 @@
           <span class="reveal-line" data-reveal-index="0">무료로 시작하고,</span>
           <span class="reveal-line" data-reveal-index="1">필요할 때만 더하세요.</span>
         </h2>
-        <p class="qa-desc reveal-line" data-reveal-index="2">누구나 무료로 시작할 수 있습니다. 무료 플랜으로 핸드오프를 먼저 경험해 보세요.<br>더 큰 프로젝트와 팀 협업이 필요해질 때 업그레이드하면 됩니다.</p>
+        <p class="qa-desc reveal-line" data-reveal-index="2">누구나 무료로 시작할 수 있습니다. 무료 플랜으로 핸드오프를 먼저 경험해 보세요. <br>더 큰 프로젝트와 팀 협업이 필요해질 때 업그레이드하면 됩니다.</p>
       </div>
     </div>
     <div class="grid">
@@ -2158,6 +2204,14 @@
     duelT0 = performance.now();
     duelRaf = requestAnimationFrame(duelTick);
   }, { threshold: [0, 0.4] }).observe(duelEl);
+
+  // 폰: 요금 캐러셀의 처음 위치를 추천 플랜(Starter) 가운데로
+  if (MOBILE) {
+    const row = document.querySelector('.pricing-row');
+    const featured = row.querySelector('.plan--featured');
+    // offsetLeft는 줄(row) 기준이 아니라서 화면 좌표 차이로 잰다
+    if (featured) row.scrollLeft += featured.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - featured.offsetWidth) / 2;
+  }
 
   // ---- 요금: 플랜 줄이 화면에 들어오면 가격이 0에서 제 값까지 차르륵 올라간다(Starter → Pro 순서로 0.12초 차).
   // 숫자 폭이 늘어나며 옆 "/월"이 밀리지 않게 시작 전에 최종 폭을 잡아 둔다. 한 번만 ----
