@@ -117,10 +117,26 @@
         },
         {
           "@type": "Question",
+          "name": "어떤 걸 만들 수 있나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "광고 성과 대시보드, 고객 문의 정리 도구, 재고·주문 관리 화면처럼 내 일에 바로 쓰는 업무 도구를 만듭니다. 하고 싶은 일을 말하면, 어떤 형태가 맞는지부터 함께 정합니다."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "다른 AI 도구와 무엇이 다른가요?",
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "만든 걸 나중에 고치거나 넓힐 수 있나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "네. 완성된 산출물 안에서 언제든 핸드오프를 불러 물어보고, 고치고, 새 화면이나 지표를 더할 수 있습니다. 프로젝트가 끝나도 쓰는 동안 계속 함께합니다."
           }
         },
         {
@@ -152,6 +168,8 @@
     --hero-radius: 30px;   /* Figma: hero corner radius at rest */
     --grid-columns: 12;
     --grid-gutter: 24px;
+    /* 페이지 공통 스프링(데모 장면·FAQ 등): 0.35초쯤 도착해 2% 살짝 넘었다 돌아오며 0.62초에 멈춘다(감쇠비 0.78) */
+    --spring: linear(0, 0.036, 0.122, 0.236, 0.359, 0.48, 0.592, 0.69, 0.773, 0.842, 0.896, 0.937, 0.968, 0.989, 1.004, 1.013, 1.018, 1.02, 1.02, 1.018, 1.016, 1.014, 1.011, 1.009, 1.007, 1.005, 1.004, 1.003, 1);
   }
   /* 바운스(오버스크롤) 시 다크 푸터 아래로 흰 배경이 드러나서 끔 */
   /* 스크롤바를 아예 숨긴다 — 색을 맞추려 하면 브라우저마다 적용 방식이 달라 믿을 수 없었다(실측).
@@ -161,6 +179,9 @@
   html { overflow-x: hidden; overscroll-behavior-y: none; scrollbar-width: none; -ms-overflow-style: none; }
   html::-webkit-scrollbar { display: none; width: 0; height: 0; }
   body {
+    /* 안전망: 어떤 장식이 화면 밖으로 삐져나가도 페이지 폭이 넓어지지 않게(넓어지면 모바일에서 고정 GNB 오른쪽이 화면 밖으로 밀린다).
+       hidden이 아니라 clip — 스크롤 컨테이너를 만들지 않아 position: sticky(핀 섹션들)가 그대로 동작한다 */
+    overflow-x: clip;
     font-family: 'Pretendard', -apple-system, sans-serif;
     background: #fff;
     color: #111827;
@@ -205,7 +226,8 @@
   .gnb-btn--ghost { color: #6b7280; transition: color 0.15s ease; }
   .gnb-btn--ghost.is-on-dark { color: #fff; }
   .gnb-btn--solid { background: #111827; color: #fff; border: none; }
-  .gnb-btn { cursor: pointer; transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease; }
+  /* 색 전환은 0.3초 — 히어로를 벗어나며 흰 글자 → 기본 색으로 바뀔 때 GNB 페이드와 같은 박자로 */
+  .gnb-btn { cursor: pointer; transition: color 0.3s ease, background 0.3s ease, transform 0.15s ease; }
   .gnb-btn--ghost:hover { color: #111827; }
   .gnb-btn--ghost.is-on-dark:hover { color: rgba(255, 255, 255, 0.7); }
   .gnb-btn--solid:hover { background: #374151; }
@@ -460,56 +482,125 @@
   .col-11 { grid-column: span 11; }
   .col-12 { grid-column: span 12; }
 
-  /* ---- 카드 3열 섹션: 섹션 안의 모든 reveal 애니메이션이 끝날 때까지 스크롤을 고정(pin)함 ---- */
-  .cards-section {
-    position: relative;
-    height: calc(100vh + 1120px); /* JS의 CARDS_ANIM_PX(1000) + CARDS_HOLD_PX(120) 후 핀 해제 */
-  }
-  .cards-pin-sticky {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden; /* 핀 영역(100vh) 밖으로는 무슨 일이 있어도 안 나감 — 아래 섹션과 겹치지 않도록 */
-  }
-  /* 텍스트 + 카드 = 한 덩어리. flex item 기본값(flex-shrink: 1)으로 눌리면 내용이 박스 밖으로
-     삐져나와 아래 섹션과 겹치므로 shrink를 끔 */
-  .cards-bundle { flex: none; }
-  /* 좌우 1컬럼씩 비우고(2~11번 컬럼) 남은 10컬럼을 3등분 — col-4 스팬으로는 3등분이 안 나옴 */
-  .cards-row {
-    grid-column: 2 / 12;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--grid-gutter);
-  }
-  .card-item { display: flex; flex-direction: column; gap: 24px; }
-  .card-media {
-    aspect-ratio: 5 / 3;
-    border-radius: 24px;
-    background: #f5f5f7;
-    overflow: hidden;
-  }
-  .card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .card-body { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
-  .card-label { display: flex; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 600; color: #111827; }
-  .card-num { color: #9ca3af; font-weight: 500; }
-  .card-desc { color: #4b5563; font-size: 16px; line-height: 1.6; letter-spacing: 0.4px; }
-  /* 텍스트 + 카드가 한 번들 — 흐름 안에 같이 두고 .cards-pin-sticky의 flex가 통째로 중앙 정렬.
-     .cards-cta-grid도 .grid라서 자기 page-margin/12컬럼을 그대로 가짐 → 카드와 컬럼이 정확히 일치 */
+  /* ---- 방식 비교 섹션(「시키는 대로 하기 전에, 맞는 방법인지 먼저 봅니다」): 같은 질문을 두 창에 동시에 보낸다 ----
+     왼쪽 "요청 그대로 하면"은 바로 1.3을 내놓고 끝. 오른쪽 "핸드오프"는 "잠깐요"로 멈춰 같은 데이터를 두 번 계산해
+     1.3 vs 4.0(세 배 차이)을 보여 주고, 유저가 "아, 묶고 나서로"를 고른다. 화면에 들어오면 자동 재생(JS renderDuel).
+     모든 요소는 처음부터 자리를 차지한 채 투명도·위치로만 나타나서 재생 중에 섹션 크기가 변하지 않는다 */
+  .cards-section { position: relative; padding: 120px 0; }
   .cards-cta-grid { margin-bottom: 56px; }
-  /* 좌변을 1번 카드와 같은 그리드 선(2번 컬럼)에 맞춤 */
-  .cards-cta-grid .qa-copy { grid-column: 2 / 12; }
+  .cards-cta-grid .qa-copy { grid-column: 1 / -1; }
   .cards-cta-grid .qa-title span { white-space: nowrap; }
+  .duel { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--grid-gutter); }
+  .duel-win { display: flex; flex-direction: column; }
+  .duel-frame { flex: 1; display: flex; flex-direction: column; border: 1px solid #e5e7eb; border-radius: 24px; background: #fff; overflow: hidden; transition: opacity 0.5s ease, filter 0.5s ease; }
+  .duel-win--handoff .duel-frame { border-color: #c9d6fb; box-shadow: 0 18px 50px rgba(36, 87, 245, 0.08); }
+  .duel-head { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px; border-bottom: 1px solid #f0f1f4; color: #111827; font-size: 14px; font-weight: 600; }
+  .duel-head i { width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; }
+  .duel-head img { width: 12px; height: 18px; }
+  .duel-head small { margin-left: auto; color: #9ca3af; font-size: 12px; font-weight: 500; }
+  .duel-body { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 24px; }
+  /* 나타나기: 자리는 그대로, 투명도·위치만 */
+  .duel-in { opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.62s var(--spring); }
+  .duel-in.is-in { opacity: 1; transform: none; }
+  .duel-me { align-self: flex-end; max-width: 88%; padding: 11px 16px; border-radius: 18px 18px 6px 18px; background: #1f2937; color: #fff; font-size: 14px; line-height: 1.55; }
+  .duel-ai { position: relative; align-self: flex-start; max-width: 92%; padding: 11px 16px; border-radius: 6px 18px 18px 18px; background: #f3f5f9; color: #111827; font-size: 14px; line-height: 1.6; }
+  .duel-ai b { font-weight: 700; }
+  /* 쓰는 중: 말풍선은 제 크기 그대로, 글자만 숨기고 점 세 개 */
+  .duel-ai.is-typing { color: transparent; }
+  .duel-ai.is-typing b { color: transparent; }
+  .duel-ai.is-typing::after { content: ""; position: absolute; top: 20px; left: 16px; width: 6px; height: 6px; border-radius: 50%; background: #9ca3af; box-shadow: 12px 0 0 #9ca3af, 24px 0 0 #9ca3af; animation: faq-dots 1s ease-in-out infinite; }
+  .duel-done { align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: #f3f4f6; color: #6b7280; font-size: 12px; font-weight: 600; }
+  /* 두 번 계산한 결과 타일 — 막대가 차오르며 숫자가 0에서 올라간다. 통째로 = 한 덩어리 막대, 묶고 나서 = 채널별 세 막대 */
+  .duel-tiles { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin-top: 4px; }
+  .duel-tile { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fafbfc; transition: opacity 0.3s ease, transform 0.62s var(--spring), border-color 0.3s ease, box-shadow 0.3s ease; }
+  .duel-tile span { color: #6b7280; font-size: 12px; }
+  .duel-tile b { color: #111827; font-size: 30px; font-weight: 700; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+  .duel-bars { display: flex; flex-direction: column; gap: 4px; height: 34px; justify-content: center; }
+  .duel-bars i { display: block; width: var(--w); height: 6px; border-radius: 3px; background: #c7ccd6; transform: scaleX(var(--g, 0)); transform-origin: left; }
+  .duel-tile--b .duel-bars i { background: #2457f5; }
+  .duel-tile--b b { color: #2457f5; }
+  .duel-tile.is-chosen { border-color: #2457f5; box-shadow: 0 0 0 1px #2457f5, 0 10px 26px rgba(36, 87, 245, 0.14); }
+  .duel-tile.is-dim { opacity: 0.45; }
+  .duel-x { padding: 6px 10px; border-radius: 999px; background: #111827; color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .duel-choices { display: flex; justify-content: flex-end; gap: 8px; margin-top: auto; }
+  .duel-btn { padding: 9px 16px; border: 1px solid #e5e7eb; border-radius: 999px; background: #fff; color: #4b5563; font-size: 13px; font-weight: 600; transition: transform 0.12s ease-out, background-color 0.2s ease; }
+  .duel-btn--solid { border-color: #2457f5; background: #2457f5; color: #fff; }
+  .duel-btn.is-press { transform: scale(0.94); }
+  .duel-cap { margin-top: 16px; color: #6b7280; font-size: 15px; text-align: center; }
+  .duel-win--handoff .duel-cap { color: #2457f5; font-weight: 600; }
+  /* 유저가 고른 뒤엔 시선이 오른쪽으로 가도록 왼쪽 창이 살짝만 물러난다(깎아내리지 않게 흑백 처리는 하지 않는다) */
+  .duel.is-decided .duel-win--other .duel-frame { opacity: 0.75; }
+  @media (prefers-reduced-motion: reduce) {
+    .duel-in, .duel-tile, .duel-frame, .duel-btn { transition: none; }
+    .duel-ai.is-typing::after { animation: none; }
+  }
 
-  /* ---- 스토리 섹션: 히어로 직후 공감 유도 카피. 좌변을 카드 섹션과 같은 2번 컬럼에 맞춤 ---- */
-  .story-section { padding: 100px 0; background: #ffffff; }
-  .story-section .grid { align-items: start; }
-  /* 2~11번 컬럼을 반반(5컬럼씩): 타이틀 좌측, 본문 우측 */
-  .story-head { grid-column: 2 / 7; }
-  .story-body { grid-column: 7 / 12; }
-  .story-body .qa-desc strong { color: #111827; font-weight: 600; }
+  /* ---- 스토리 섹션: 번역 와이프 ----
+     한 화면을 고정해 두고, 스크롤하는 동안 파란 핸들이 왼쪽 → 오른쪽으로 지나간다.
+     핸들 오른쪽 = 번역 전(팀이 쓰는 전문용어), 왼쪽 = 번역 후(같은 내용을 내 말로).
+     같은 배치의 두 장(.tw-layer)을 겹쳐 두고, 번역 후 장을 핸들 위치(--hx)까지만 보이게 잘라 낸다(clip-path).
+     높이 = 100vh + JS의 TW_TRAVEL_PX(1600). 앞 5%·뒤 20%는 멈춤 구간 */
+  .story-section { position: relative; height: calc(100vh + 1600px); }
+  .tw-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; --hx: 0%; }
+  /* isolation: 레이어마다 쌓임 순서를 따로 갖게 한다 — 없으면 안쪽 글(z-index 1)이 레이어 밖으로 새어
+     번역 전 장의 글자가 번역 후 장 배경 위로 비쳐 겹쳐 보인다 */
+  .tw-layer { position: absolute; inset: 0; isolation: isolate; display: flex; flex-direction: column; justify-content: center; padding: var(--nav-height) 0 40px; }
+  /* 두 장 모두 흰 바탕 — 바뀌는 건 글뿐(제목·본문은 같은 색, 흩뿌린 용어만 회색 → 파랑) */
+  .tw-layer--before { background: #fff; color: #111827; }
+  .tw-layer--after { background: #fff; color: #111827; clip-path: inset(0 calc(100% - var(--hx)) 0 0); }
+  /* 레이어 안: 가운데에 단정한 제목(왼쪽 절반) · 본문(오른쪽 절반), 그 위아래로 무질서하게 흩뿌린 전문용어.
+     두 레이어는 배치가 같고 글만 다르다 — 핸들이 지나가는 경계에서 같은 자리의 글이 번역 전 → 후로 바뀐다 */
+  .tw-layer > .grid { position: relative; z-index: 1; align-items: start; }
+  .tw-title { grid-column: 1 / 7; display: flex; flex-direction: column; font-size: 40px; font-weight: 700; line-height: 1.3; letter-spacing: -0.6px; }
+  .tw-body { grid-column: 7 / 13; display: flex; flex-direction: column; gap: 20px; }
+  .tw-body p { font-size: 16px; line-height: 1.6; letter-spacing: 0.4px; }
+  .tw-layer--before .tw-body p { color: #4b5563; }
+  .tw-layer--after .tw-body p { color: #4b5563; }
+  /* 강조(제목 둘째 줄 · 본문 마지막 문장): 번역 전은 검정, 번역 후만 브랜드 컬러 — 내 말로 바뀌는 순간 색이 켜진다 */
+  .tw-body strong { color: #111827; font-weight: 600; }
+  .tw-layer--after .tw-body strong,
+  .tw-layer--after .tw-title span:last-child { color: #0158FD; }
+  /* 흩뿌린 용어 = 배경. 읽히는 정보가 아니라 공기처럼 깔리도록 단어마다 깊이(--d 0~1)를 준다:
+     먼 단어(0)는 작고 옅게 — 제목·본문 주변(위아래)에, 가까운 단어(1)는 크지만 초점이 나간 듯 흐리게 — 제목·본문 바로 뒤에 깐다.
+     주변의 선명한 단어들은 크기(--fs)·굵기(--w)·회색 밝기(--l)·투명도(--o)를 제각각 줘서 줄 맞춘 목록처럼 보이지 않게 한다.
+     일부는 화면 가장자리에서 잘린다.
+     번역 전은 아주 옅은 회색, 번역 후는 같은 자리에 아주 옅은 파랑 */
+  .tw-word {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: -50% -50%;
+    font-size: var(--fs, calc(13px + var(--d) * 34px));
+    font-weight: var(--w, 600);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    opacity: var(--o, calc(0.95 - var(--d) * 0.45));
+    filter: blur(calc(var(--d) * var(--d) * 4px));
+    pointer-events: none;
+  }
+  .tw-layer--before .tw-word { color: hsl(220 14% var(--l, 85%)); } /* 단어마다 회색 밝기가 조금씩 다르다 */
+  .tw-layer--after .tw-word { color: rgba(36, 87, 245, 0.28); }
+  /* 핸들: 화면 전체 높이의 파란 선 + 가운데 작은 손잡이(은은한 빛) — 이 선이 지나간 자리부터 내 말로 바뀐다.
+     손잡이는 "밀고 있다"는 단서(어포던스)만 줄 만큼 작고 옅게 */
+  .tw-handle { position: absolute; top: 0; bottom: 0; left: var(--hx); width: 2px; margin-left: -1px; background: #2457f5; pointer-events: none; transition: opacity 0.4s ease; }
+  .tw-handle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 52px;
+    border-radius: 7px;
+    background: #2457f5;
+    box-shadow: 0 0 28px 6px rgba(36, 87, 245, 0.16);
+    /* 빨리 밀수록 세로로 최대 18% 늘어난다(JS --tw-stretch 0~1) */
+    transform: translate(-50%, -50%) scaleY(calc(1 + var(--tw-stretch, 0) * 0.18));
+  }
+  /* 다 지나가면 선·손잡이는 물러난다 — 번역 후만 남게 */
+  .tw-stage.is-done .tw-handle { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .tw-handle { transition: none; }
+  }
 
   /* ---- 공통 카피 타이포 (스토리 섹션 + 스텝 섹션에서 재사용) ---- */
   .qa-copy { display: flex; flex-direction: column; gap: 20px; }
@@ -534,106 +625,345 @@
     .qa-title { font-size: 24px; }
     .qa-desc { font-size: 13px; }
   }
-  /* ---- 스텝 섹션: 스크롤이 핀된 동안 좌측 항목이 열/닫히고 우측 미디어가 전환됨 ---- */
-  /* 높이 = 100vh + 스텝수 × JS의 STEP_PX(700) + 마지막 스텝 후 순수 대기 300px.
-     스텝을 늘리면 여기도 같이 늘려야 함 */
-  .steps-section { position: relative; height: calc(100vh + 2400px); }
-  .steps-sticky {
-    position: sticky;
-    top: 0;
-    height: 100vh;
+  /* ---- 스텝 섹션: 진행 표시(탭 3칸). 스크롤을 붙잡지 않는 일반 섹션 — 화면에 들어오면 바가 시간에 맞춰 저절로 찬다 ---- */
+  /* 한 화면을 통째로 쓴다 — 위아래 섹션이 같이 보이지 않게(히어로와 같은 방식). 탭 줄은 화면 가운데 */
+  .steps-section {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden;
+    padding: var(--nav-height) 0;
+    overflow: hidden; /* 빛이 섹션 밖으로 번지지 않게 */
   }
-  .steps-sticky .grid { align-items: center; }
-  .steps-list { grid-column: 2 / 7; }
-  .step-item { padding: 24px 0; border-bottom: 1px solid #e5e7eb; }
-  .step-item:first-child { padding-top: 0; }
-  .step-item:last-child { border-bottom: 0; }
+  .steps-section > .grid { position: relative; z-index: 1; }
+  /* 배경 ① 작업대 격자: 72px 정사각 격자를 흰 배경에 거의 묻힐 만큼 옅게, 가운데만 보이고 가장자리로 갈수록 사라진다 */
+  .steps-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, #f5f6f8 1px, transparent 1px),
+      linear-gradient(to bottom, #f5f6f8 1px, transparent 1px);
+    background-size: 72px 72px;
+    background-position: center center;
+    -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 35%, transparent 85%);
+    mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 35%, transparent 85%);
+    pointer-events: none;
+  }
+  /* 배경 ② 단계를 따라다니는 빛: 지금 단계 탭 아래로 옮겨 가며 색이 바뀐다(01 파랑 · 02 라벤더 · 03 청록).
+     JS가 섹션에 data-step을 넣는다. --glow-c를 색으로 등록해 두어야 그라데이션 색이 부드럽게 바뀐다 */
+  @property --glow-c { syntax: "<color>"; inherits: true; initial-value: rgba(36, 87, 245, 0.06); }
+  .steps-glow {
+    --glow-c: rgba(36, 87, 245, 0.06);
+    --gx: 30vw;
+    position: absolute;
+    top: 58%;
+    left: 0;
+    width: 900px;
+    height: 900px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow-c) 0%, transparent 62%);
+    transform: translate(calc(var(--gx) - 50%), -50%);
+    transition: transform 1.4s cubic-bezier(0.45, 0, 0.2, 1), --glow-c 1.4s ease;
+    pointer-events: none;
+  }
+  .steps-section[data-step="1"] .steps-glow { --gx: 50vw; --glow-c: rgba(139, 92, 246, 0.06); }
+  .steps-section[data-step="2"] .steps-glow { --gx: 70vw; --glow-c: rgba(20, 184, 166, 0.06); }
+  /* 가로 탭 3칸 — 칸마다 아래에 진행 바 */
+  .steps-list { grid-column: 2 / 12; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .step-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 18px 20px;
+    border-radius: 14px 14px 0 0;
+    cursor: pointer;
+    transition: background-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  .step-item.is-active { background: #fff; box-shadow: 0 12px 40px rgba(17, 24, 39, 0.08); }
+  .step-head { display: flex; align-items: baseline; gap: 8px; }
+  /* 번호 ↔ 체크: 지난 단계(.is-done)만 체크 */
+  .step-mark { flex: none; display: inline-grid; place-items: center; min-width: 18px; color: #9ca3af; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .step-check { display: none; color: #0158FD; transform: translateY(2px); }
+  .step-item.is-done .step-num { display: none; }
+  .step-item.is-done .step-check { display: block; }
   /* button인 이유: 클릭으로 열 수 있어야 하니 키보드 포커스/엔터가 공짜로 따라오는 네이티브 요소를 씀 */
   .step-title {
-    width: 100%;
     background: none;
     border: 0;
+    padding: 0;
     font-family: inherit;
     text-align: left;
     cursor: pointer;
-    color: #9ca3af;
-    font-size: 24px;
+    color: #6b7280;
+    font-size: 17px;
     font-weight: 700;
-    line-height: 1.3;
-    letter-spacing: -0.4px;
-    transition: color 0.4s ease;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    transition: color 0.35s ease;
   }
-  .step-item.is-active .step-title { color: #111827; }
-  /* 0fr → 1fr 전환: 내용 높이를 JS로 재지 않고도 열림/닫힘이 애니메이션됨 */
-  .step-desc-wrap {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 0.5s ease, opacity 0.35s ease;
+  .step-item.is-active .step-title, .step-item.is-done .step-title { color: #111827; }
+  .step-desc { margin-top: 6px; padding-left: 26px; color: #6b7280; font-size: 14px; line-height: 1.5; }
+  /* 좁은 데스크톱(탭 한 칸이 160px 안팎) — 제목이 한 줄에 들어가게 줄인다 */
+  @media (min-width: 769px) and (max-width: 1100px) {
+    .step-item { padding: 16px 12px 18px; }
+    .step-title { font-size: 15px; }
+    .step-desc { padding-left: 0; font-size: 13px; }
   }
-  .step-desc-wrap > div { overflow: hidden; min-height: 0; }
-  .step-item.is-active .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
-  .step-desc { padding-top: 12px; color: #4b5563; font-size: 16px; line-height: 1.6; letter-spacing: 0.4px; }
+  /* 진행 바: 회색 트랙 위로 파랑이 --p만큼 찬다 */
+  .step-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #e5e7eb; overflow: hidden; }
+  .step-bar span {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #0158FD, #5b8dff);
+    transform: scaleX(var(--p, 0));
+    transform-origin: left;
+  }
 
-  .steps-media {
-    grid-column: 7 / 12; /* 7~11번 컬럼 */
+  /* ---- 탭 아래 무대: 지금 단계의 장면만 보인다. 01은 실제 서비스 화면에서 카드를 고르는 데모 ----
+     장면 진행은 그 단계의 진행 바(--p)와 같은 시계로 움직인다(JS renderPickDemo) */
+  .steps-stage {
+    grid-column: 2 / 12;
     position: relative;
-    aspect-ratio: 16 / 9; /* 스텝 영상 원본(3420×1906)과 동일 — 4:3이면 좌우가 잘림 */
-    border-radius: 24px;
-    background: #f7fafb; /* 스텝 영상 배경색과 동일 — contain 레터박스가 이어 붙어 보이도록 */
-    overflow: hidden;
+    height: min(480px, calc(100vh - 340px));
+    min-height: 400px;
+    margin-top: 32px;
   }
-  .step-media {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-  }
-  .step-media.is-active { opacity: 1; }
-  .step-media img,
-  .step-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* 화면 녹화라 UI가 프레임 가운데 위쪽(가로 33~66%, 세로 10~52%)에만 들어있고 나머지는 빈 여백.
-     1.5배에서 상단 기준(50% 0)으로 잡으면 보이는 범위가 가로 16.7~83.3%, 세로 0~66.7% —
-     비어 있는 아래쪽만 잘리고 UI는 여유를 두고 들어옴 */
-  .step-media video.is-zoomed { transform: scale(1.5); transform-origin: 50% 0; }
-  /* 패널(16:9)보다 정방형에 가까운 원본 — cover면 상하가 잘려 툴바/입력창이 사라짐.
-     영상 배경이 패널 배경과 같은 톤이라 좌우 레터박스는 눈에 띄지 않음 */
-  .step-media video.is-contain { object-fit: contain; }
-  /* 원본 우측 끝 28px에 녹화된 창 테두리(어두운 띠)가 있음. 원본이 16:9보다 살짝 넓어(1.798 vs 1.778)
-     cover가 가로로 39px을 잘라내는데, 기본값이면 좌우로 나눠 잘려 우측에 9px이 남음.
-     크롭을 오른쪽으로 몰아서(object-position: left) 28px을 전부 걷어냄 */
-  .step-media video.is-trim-right { object-position: left; }
+  /* 측정(offsetLeft 등)이 되도록 display:none 대신 투명도로 숨긴다 */
+  .stage-pane { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s; }
+  .stage-pane.is-active { opacity: 1; visibility: visible; }
+  .demo { position: relative; width: min(560px, calc(100% - 48px)); }
+  /* 질문 화면 둘이 같은 칸에 겹쳐 있고 지금 것만 보인다 — 지난 화면은 위로, 다음 화면은 아래에서 */
+  .demo-screens { display: grid; }
+  /* 나가는 화면은 짧게 위로 흐려지며 빠지고, 들어오는 화면의 질문·카드는 순서대로(0 → 60 → 120ms) 아래에서 스프링으로 올라온다 */
+  .demo-screen { grid-area: 1 / 1; opacity: 0; transform: translateY(-10px) scale(0.985); filter: blur(2px); transition: opacity 0.22s ease-in, transform 0.22s ease-in, filter 0.22s ease-in; }
+  .demo-screen:not(.is-past):not(.is-active) { transform: none; filter: none; }
+  .demo-screen.is-active { opacity: 1; transform: none; filter: none; transition: opacity 0.15s ease-out; }
+  .demo-screen.is-active .demo-q,
+  .demo-screen.is-active .demo-opt { animation: demo-rise 0.62s var(--spring) backwards; }
+  .demo-screen.is-active .demo-opt:nth-child(1) { animation-delay: 60ms; }
+  .demo-screen.is-active .demo-opt:nth-child(2) { animation-delay: 120ms; }
+  @keyframes demo-rise { from { opacity: 0; transform: translateY(18px); } }
+  .demo-q { margin-bottom: 36px; color: #111827; font-size: 22px; font-weight: 600; letter-spacing: -0.4px; text-align: center; }
+  .demo-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* 카드 = 바깥 옅은 틀 + 안쪽 카드. 고르면 바깥이 파란 링, 안쪽이 옅은 파랑 그라데이션 */
+  /* 고르면 살짝 떠오르며(스프링) 링·그림자가 붙고, 같은 질문의 다른 카드는 물러난다(흐려짐) */
+  .demo-opt { padding: 6px; border: 1px solid #eceef3; border-radius: 22px; background: rgba(255, 255, 255, 0.6); transition: border-color 0.2s ease, box-shadow 0.3s ease, opacity 0.3s ease, transform 0.62s var(--spring); }
+  .demo-opt-in { display: flex; flex-direction: column; height: 100%; padding: 16px 18px 14px; border: 1px solid #eceef2; border-radius: 16px; background: #fff; transition: background 0.25s ease; }
+  .demo-opt.is-chosen { border-color: #4f7df5; box-shadow: 0 0 0 1px #4f7df5, 0 14px 30px rgba(36, 87, 245, 0.06); transform: translateY(-4px); }
+  .demo-screen.is-picked .demo-opt:not(.is-chosen) { opacity: 0.45; }
+  .demo-opt.is-chosen .demo-opt-in { background: linear-gradient(160deg, #e7efff 0%, #f6f9ff 70%); }
+  /* 누르는 순간은 짧고 단단하게(ease-out 0.1초) — 떼면 위의 스프링으로 돌아간다 */
+  .demo-opt.is-press { transform: scale(0.965); transition: transform 0.1s ease-out, border-color 0.2s ease, box-shadow 0.3s ease; }
+  .demo-label { color: #6b7280; font-size: 12px; }
+  .demo-title { margin-top: 8px; color: #374151; font-size: 16px; font-weight: 700; line-height: 1.45; letter-spacing: -0.3px; }
+  .demo-sub { margin-top: 6px; color: #4b5563; font-size: 13px; line-height: 1.5; }
+  .demo-state { display: grid; place-items: center; height: 34px; margin-top: 20px; border: 1px solid #eceef2; border-radius: 999px; color: #9ca3af; font-size: 12px; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+  .demo-state span:last-child, .demo-opt.is-chosen .demo-state span:first-child { display: none; }
+  .demo-opt.is-chosen .demo-state span:last-child { display: inline; }
+  .demo-opt.is-chosen .demo-state { border-color: transparent; background: #e3ebfd; color: #2f6bf0; }
+  /* 가짜 마우스 커서 — 위치는 JS가 매 프레임 넣는다 */
+  .demo-cursor { position: absolute; top: 0; left: 0; z-index: 2; opacity: 0; pointer-events: none; transform-origin: 5px 3px; /* 화살표 끝 기준으로 눌린다 */ filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); transition: opacity 0.3s ease; }
+  .demo-cursor.is-on { opacity: 1; }
 
-  /* 미디어 미제공 스텝: 더미 이미지 대신 스켈레톤 */
-  .step-skeleton {
+  /* ---- 02 장면: PD 제안(표) → 내 말 입력·Send → PD가 다시 그리는 중 → 표가 내 말대로 행·열이 뒤바뀐 제안 → "네, 그게 낫네요"로 결정 ----
+     장면은 780×324 고정 크기로 그리고, 좁은 화면에선 통째로 축소한다. 위치·타이밍은 JS renderDecideDemo */
+  .decide { width: 780px; height: 324px; }
+  /* 고정 크기 장면(02·03)은 무대 정중앙에 놓고 그 자리에서 축소한다 — 레이아웃상 780px 자리를 그대로 두면
+     좁은 무대에선 왼쪽 기준으로 넘친 채 가운데 기준으로 줄어 오른쪽으로 치우쳐 잘린다 */
+  /* 배율(--scene-scale)은 JS fitScenes가 무대 폭·높이에 꽉 차는 최댓값(최대 1)으로 넣는다 */
+  .decide, .handy { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--scene-scale, 1)); }
+  /* PD 말풍선 — 가운데 위. 보내면 아래(입력창 쪽)로 줄어들며 사라지고, 다시 그린 뒤 같은 자리에서 다시 열린다 */
+  .dc-bubble {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 60px;
+    width: 660px;
+    display: flex;
+    gap: 20px;
+    padding: 14px;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 12px 40px rgba(17, 24, 39, 0.1), 0 0 0 1px rgba(17, 24, 39, 0.04);
+    transform-origin: 50% 100%;
+    opacity: 0;
+    transform: translateY(12px) scale(0.86);
+    transition: opacity 0.2s ease-in, transform 0.25s ease-in;
+  }
+  .dc-bubble.is-open { opacity: 1; transform: none; transition: opacity 0.2s ease-out, transform 0.62s var(--spring); }
+  .dc-sheet { flex: none; width: 366px; height: 196px; padding: 12px 12px 0; border-radius: 14px; background: #eef0f3; overflow: hidden; }
+  .dc-sheet-title { color: #111827; font-size: 13px; font-weight: 700; }
+  /* 표 칸: (행 --r, 열 --c) 자리에 놓이고, 뒤집히면 (열, 행) 자리로 날아간다. 대각선 순서로 22ms씩 늦게 출발 */
+  .dc-grid { position: relative; margin-top: 10px; height: 150px; }
+  .dc-cell {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 25px;
+    border-radius: 6px;
+    background: #fff;
+    color: #6b7280;
+    font-size: 10px;
+    transform: translate(calc(var(--c) * 67px), calc(var(--r) * 30px));
+    transition: transform 0.62s var(--spring) calc((var(--r) + var(--c)) * 22ms);
+  }
+  .dc-cell.is-head { background: transparent; color: #374151; font-weight: 700; }
+  .dc-cell.is-blank { background: transparent; }
+  .dc-cell i { width: 60%; height: 4px; border-radius: 2px; background: #e5e7eb; }
+  .dc-grid.is-transposed .dc-cell { transform: translate(calc(var(--r) * 67px), calc(var(--c) * 30px)); }
+  .dc-talk { display: flex; flex-direction: column; flex: 1; padding: 6px 6px 2px 0; }
+  .dc-who { color: #6b7280; font-size: 12px; }
+  .dc-msg { margin-top: 8px; color: #111827; font-size: 15px; line-height: 1.55; }
+  .dc-msg-b, .dc-bubble.is-b .dc-msg-a { display: none; }
+  .dc-bubble.is-b .dc-msg-b { display: block; }
+  .dc-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+  .dc-ask { color: #9ca3af; font-size: 12px; }
+  .dc-ok { padding: 9px 18px; border-radius: 999px; background: #e8edfb; color: #9aa9d6; font-size: 12.5px; font-weight: 600; transition: transform 0.12s ease-out, background-color 0.2s ease, color 0.2s ease; }
+  .dc-bubble.is-b .dc-ok { background: #2457f5; color: #fff; }
+  .dc-ok.is-press { transform: scale(0.94); }
+  .dc-ok.is-done { background: #16a34a !important; }
+  /* PD가 다시 그리는 중 — 글자 위로 빛이 훑고 지나간다 */
+  .dc-status { position: absolute; top: 80px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0; transform: translateY(6px); transition: opacity 0.3s ease, transform 0.3s ease; }
+  .dc-status.is-on { opacity: 1; transform: none; }
+  .dc-status p {
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(90deg, #374151 0%, #374151 40%, #b8c4dc 50%, #374151 60%, #374151 100%) 0 0 / 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: dc-shimmer 1.6s linear infinite;
+  }
+  @keyframes dc-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+  .dc-status span { padding: 5px 12px; border: 1px solid #e5e7eb; border-radius: 999px; color: #6b7280; font-size: 10px; }
+  /* 입력창 — 내 말이 타이핑되고 Send. 보낸 뒤엔 흐려지고 위에 "고민하고 있어요" */
+  .dc-thinking { position: absolute; top: 240px; left: 196px; display: flex; align-items: center; gap: 6px; color: #6b7280; font-size: 10.5px; opacity: 0; transition: opacity 0.25s ease; }
+  .dc-thinking.is-on { opacity: 1; }
+  .dc-thinking::before { content: ""; width: 10px; height: 10px; border: 1.5px solid #c7cedb; border-top-color: #2457f5; border-radius: 50%; animation: dc-spin 0.8s linear infinite; }
+  @keyframes dc-spin { to { transform: rotate(360deg); } }
+  .dc-composer { position: absolute; top: 266px; left: 180px; width: 420px; height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 20px; border: 1px solid #c9d6fb; border-radius: 999px; background: #fff; box-shadow: 0 0 0 4px rgba(36, 87, 245, 0.06); }
+  .dc-plus { color: #9ca3af; font-size: 16px; }
+  .dc-typed { flex: 1; color: #111827; font-size: 11px; line-height: 1.5; transition: opacity 0.25s ease; }
+  .dc-typed:empty::before { content: "Ask Anything..."; color: #9ca3af; }
+  .dc-composer.is-sent .dc-typed { opacity: 0.4; }
+  .dc-send { flex: none; padding: 7px 14px; border-radius: 999px; background: #2457f5; color: #fff; font-size: 10.5px; font-weight: 600; transition: transform 0.12s ease-out, opacity 0.2s ease; }
+  .dc-send.is-press { transform: scale(0.92); }
+  .dc-composer.is-sent .dc-send, .dc-composer.is-idle .dc-send { opacity: 0; }
+
+  /* 장면이 바뀌는 순간(반복 포함) 새 장면을 전환 없이 처음 상태로 맞춘다 — 끝 상태에서 되감기는 모습이 보이지 않게(JS renderSteps) */
+  .stage-pane.is-snap, .stage-pane.is-snap *, .stage-pane.is-snap *::before, .stage-pane.is-snap *::after { transition: none !important; }
+
+  /* ---- 03 장면: 유저가 만든 산출물(대시보드)에서 「팀 호출하기」 → 질문 → BE가 데이터를 갈라 답하고, 해당 행이 강조된다 ----
+     780×420 고정 크기로 그리고 좁은 화면에선 통째로 축소. 타이밍은 JS renderHandyDemo(ms 기준) */
+  .handy { width: 780px; height: 420px; }
+  .hd-frame { position: absolute; inset: 0; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 18px; background: #fafbfc; }
+  .hd-bar { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-bottom: 1px solid #eef0f3; background: #fff; color: #9ca3af; font-size: 12px; }
+  .hd-url { flex: 1; padding: 5px 14px; border: 1px solid #e5e7eb; border-radius: 999px; color: #4b5563; font-size: 11px; }
+  .hd-body { padding: 18px 32px 0; }
+  .hd-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+  .hd-title { color: #111827; font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .hd-site { color: #6b7280; font-size: 10px; }
+  .hd-chart { margin-top: 14px; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+  .hd-cap { color: #4b5563; font-size: 10px; }
+  .hd-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .hd-row b { width: 46px; color: #111827; font-size: 11px; font-weight: 500; }
+  /* 막대 길이 = 값/5. 처음엔 0에서 차오른다(JS가 --g 0~1) */
+  .hd-track { width: var(--track, 300px); height: 18px; }
+  .hd-fill { display: block; height: 100%; width: calc(var(--v) / 5 * 100%); transform: scaleX(var(--g, 0)); transform-origin: left; }
+  .hd-row.is-g .hd-fill { background: #1f3fae; }
+  .hd-row.is-m .hd-fill { background: #d97706; }
+  .hd-val { margin-left: calc((var(--v) / 5 - 1) * var(--track, 300px)); color: #111827; font-size: 17px; font-weight: 700; opacity: var(--g, 0); }
+  .hd-label { margin-top: 14px; color: #4b5563; font-size: 10px; }
+  .hd-table { margin-top: 6px; border: 1px solid #4f7df5; border-radius: 10px; background: #fff; overflow: hidden; font-size: 10.5px; }
+  .hd-tr { display: grid; grid-template-columns: 70px 90px 1fr 1fr 60px 70px; align-items: center; height: 30px; padding: 0 12px; border-top: 1px solid #f0f1f4; color: #374151; }
+  .hd-tr:first-child { border-top: 0; color: #6b7280; font-size: 9.5px; }
+  .hd-tr > span:nth-child(n+3) { text-align: right; }
+  .hd-dot::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+  .hd-dot.is-g::before { background: #1f3fae; }
+  .hd-dot.is-m::before { background: #d97706; }
+  .hd-down { color: #2563eb; }
+  .hd-up { color: #dc2626; }
+  /* BE가 답할 때 이야기하는 행(이번 주 Google)이 강조된다 */
+  .hd-tr.is-flag { background: #eef3ff; box-shadow: inset 3px 0 0 #2457f5; transition: background-color 0.4s ease, box-shadow 0.4s ease; }
+  /* 「팀 호출하기」 알약 → 누르면 그 자리에서 둥근 프롬프트바로 펼쳐진다 */
+  .hd-call {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 138px;
+    height: 44px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+    overflow: hidden;
+    transition: width 0.62s var(--spring), height 0.62s var(--spring), border-color 0.3s ease, opacity 0.2s ease, transform 0.12s ease-out;
+  }
+  .hd-call.is-press { transform: scale(0.95); }
+  .hd-call.is-compose { width: 420px; height: 54px; border-color: #9db4f8; }
+  .hd-call.is-gone { opacity: 0; }
+  .hd-call-label, .hd-call-input { position: absolute; inset: 0; display: flex; align-items: center; transition: opacity 0.25s ease; }
+  .hd-call-label { gap: 8px; padding: 0 16px 0 8px; color: #111827; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .hd-call-label img { width: 28px; height: 28px; padding: 6px 8px; border-radius: 50%; background: #f3f5f9; }
+  .hd-call-input { gap: 10px; padding: 0 8px 0 18px; opacity: 0; }
+  .hd-call.is-compose .hd-call-label { opacity: 0; }
+  .hd-call.is-compose .hd-call-input { opacity: 1; }
+  .hd-typed { flex: 1; color: #111827; font-size: 11px; line-height: 1.45; }
+  .hd-send { flex: none; padding: 8px 16px; border-radius: 999px; background: #2457f5; color: #fff; font-size: 11px; font-weight: 600; transition: transform 0.12s ease-out; }
+  .hd-send.is-press { transform: scale(0.92); }
+  /* 채팅 패널 — 오른쪽 아래(프롬프트바 자리)에서 커지며 열린다 */
+  .hd-chat {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 320px;
+    height: 318px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 32px;
+    border: 1px solid #e5e7eb;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(17, 24, 39, 0.14);
+    transform-origin: 100% 100%;
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+    transition: opacity 0.2s ease-in, transform 0.25s ease-in;
   }
-  .step-skeleton span {
-    border-radius: 8px;
-    background: #e9edf3;
-    animation: skeleton-pulse 1.6s ease-in-out infinite;
-  }
-  .step-skeleton span:nth-child(1) { width: 40%; height: 20px; }
-  .step-skeleton span:nth-child(2) { flex: 1; border-radius: 16px; }
-  .step-skeleton span:nth-child(3) { width: 70%; height: 14px; }
-  .step-skeleton span:nth-child(4) { width: 45%; height: 14px; }
-  @keyframes skeleton-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
+  .hd-chat.is-open { opacity: 1; transform: none; transition: opacity 0.2s ease-out, transform 0.62s var(--spring); }
+  .hd-chat-head { display: flex; justify-content: space-between; padding: 14px 16px 0; color: #111827; font-size: 12px; font-weight: 600; }
+  .hd-chat-head span { color: #6b7280; font-size: 9.5px; font-weight: 400; }
+  .hd-msgs { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; padding: 0 14px 10px; }
+  .hd-meta { color: #6b7280; font-size: 9px; }
+  .hd-me { align-self: flex-end; max-width: 250px; margin-top: 4px; padding: 9px 12px; border-radius: 12px; background: #1f2937; color: #fff; font-size: 11px; line-height: 1.5; }
+  .hd-be { margin-top: 4px; padding: 10px 12px; border: 1px solid #eef0f3; border-radius: 12px; color: #111827; font-size: 10.5px; line-height: 1.55; }
+  .hd-be p + p { margin-top: 6px; }
+  .hd-be em { color: #2457f5; font-style: normal; }
+  /* BE 답: 처음엔 점 세 개(쓰는 중) → 답이 줄 순서대로 올라온다 */
+  .hd-dots { display: flex; gap: 4px; padding: 4px 0; }
+  .hd-dots i { width: 5px; height: 5px; border-radius: 50%; background: #9ca3af; animation: hd-dot 1s ease-in-out infinite; }
+  .hd-dots i:nth-child(2) { animation-delay: 0.15s; }
+  .hd-dots i:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes hd-dot { 50% { opacity: 0.3; transform: translateY(-2px); } }
+  .hd-be p { display: none; }
+  .hd-be.is-answered .hd-dots { display: none; }
+  .hd-be.is-answered p { display: block; animation: demo-rise 0.62s var(--spring) backwards; }
+  .hd-be.is-answered p:nth-of-type(2) { animation-delay: 90ms; }
+  .hd-be.is-answered p:nth-of-type(3) { animation-delay: 180ms; }
+  .hd-chat-input { margin: 0 12px 12px; padding: 11px 16px; border: 1px solid #e5e7eb; border-radius: 999px; color: #9ca3af; font-size: 11px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .step-desc-wrap, .step-media, .step-title { transition: none; }
-    .step-skeleton span { animation: none; }
+    .step-item, .step-title, .stage-pane, .demo-screen, .demo-opt, .demo-cursor, .steps-glow { transition: none; }
+    .demo-screen.is-active .demo-q, .demo-screen.is-active .demo-opt { animation: none; }
+    .dc-bubble, .dc-cell, .dc-status, .dc-thinking, .dc-typed, .dc-send, .dc-ok { transition: none; }
+    .dc-status p, .dc-thinking::before { animation: none; }
+    .hd-call, .hd-call-label, .hd-call-input, .hd-chat, .hd-tr.is-flag { transition: none; }
+    .hd-dots i, .hd-be.is-answered p { animation: none; }
   }
 
   /* ---- 스크롤 페이드인: hero-outro와 동일하게 스크롤 위치에 직접 연동, <br>로 나뉘던 줄은 순차(스태거)로 ---- */
@@ -645,17 +975,18 @@
     .reveal-line { opacity: 1; transform: none; }
   }
 
-  /* ---- 가격 섹션: 헤더는 가운데 정렬, 카드는 카드 섹션과 같은 2~11번 컬럼 3등분 ---- */
-  .pricing-section { padding: 120px 0; background: #fff; }
-  .pricing-head { grid-column: 2 / 12; align-items: center; text-align: center; }
+  /* ---- 가격 섹션: 헤더는 가운데 정렬, 카드는 12컬럼 전체 3등분 ---- */
+  /* overflow-x: clip — 추천 플랜 뒤 빛(좌우로 50px 번짐)이 폰에서 화면 밖으로 삐져나가 페이지 폭을 넓히지 않게 */
+  .pricing-section { padding: 120px 0; background: #fff; overflow-x: clip; }
+  .pricing-head { grid-column: 1 / -1; align-items: center; text-align: center; }
   .pricing-head .qa-title { align-items: center; }
   /* 문장 중간에서 줄이 끊기지 않도록 — 줄바꿈은 <br>로만 (좁은 화면에선 풀어서 잘림 방지) */
   .pricing-head .qa-desc { max-width: none; }
   @media (min-width: 1001px) { .pricing-head .qa-desc { white-space: nowrap; } }
   .pricing-row {
-    grid-column: 2 / 12;
+    grid-column: 1 / -1;
     display: grid;
-    /* 플랜 3개 — 카드 섹션과 같은 2~11번 컬럼 3등분 */
+    /* 플랜 3개 — 12컬럼 전체 3등분 */
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-content: center;
     gap: var(--grid-gutter);
@@ -670,10 +1001,31 @@
     border-radius: 24px;
     background: #f5f5f7;
   }
-  .plan--featured { background: #f0efec; }
+  /* 추천 플랜(Starter): 카드 뒤로 스텝 섹션과 같은 결의 은은한 파란 빛이 번진다 */
+  .plan--featured { position: relative; isolation: isolate; background: #f0efec; }
+  .plan--featured::before {
+    content: "";
+    position: absolute;
+    inset: -60px -50px;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 45%, rgba(36, 87, 245, 0.1) 0%, rgba(36, 87, 245, 0) 65%);
+    pointer-events: none;
+  }
   .plan-name { font-size: 15px; font-weight: 600; color: #111827; }
+  /* "이런 사람에게" — 그 플랜을 고를 사람이 할 법한 말을 작은 말풍선으로 */
+  .plan-for {
+    align-self: flex-start;
+    margin-top: -8px;
+    padding: 8px 14px;
+    border-radius: 16px 16px 16px 4px;
+    background: #fff;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.4;
+  }
   .plan-price { display: flex; align-items: baseline; gap: 6px; color: #111827; }
-  .plan-price b { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+  .plan-price b { font-size: 40px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; } /* 올라가는 동안 숫자 폭이 흔들리지 않게 */
   .plan-price span { font-size: 15px; color: #6b7280; }
   .plan-cta {
     display: flex;
@@ -706,7 +1058,7 @@
   .plan-list li::before { content: "✓"; color: #9ca3af; }
   /* 플랜 카드 아래 한 줄 안내 — 카드 폭(2×400 + gutter)에 맞춰 가운데 */
   .pricing-addon {
-    grid-column: 2 / 12;
+    grid-column: 1 / -1;
     justify-self: center;
     max-width: calc(800px + var(--grid-gutter));
     margin-top: 24px;
@@ -729,9 +1081,23 @@
   .waitlist-field {
     display: flex; gap: 8px; padding: 6px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    /* 히어로 입력창과 같은 리퀴드 글래스 — 뒤의 방이 흐려져 비치고, 파란 빛이 은은하게 둘러싼다 */
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 0 40px rgba(1, 88, 253, 0.28);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
     transition: border-color 0.15s ease, gap 0.6s cubic-bezier(.22,1,.36,1);
+  }
+  /* 유리 윗면의 반사광 — 히어로 입력창과 같은 결 */
+  .waitlist-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 38%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.06) 100%);
+    pointer-events: none;
   }
   .waitlist-field.is-done { gap: 0; } /* 버튼이 입력칸 자리까지 채우면 둘 사이 틈도 사라진다 */
   .waitlist-field:focus-within { border-color: rgba(255, 255, 255, 0.5); }
@@ -797,48 +1163,72 @@
   .waitlist-msg.is-silent { color: transparent; } /* 자리는 유지, 화면엔 안 보이고 화면 낭독기에만 읽힌다 */
 
   /* ---- FAQ: 답변은 HTML에 그대로 두고 <details>로 접기만 함 — 검색·AI 수집기가 본문으로 읽음 ---- */
-  .faq-section { padding: 80px 0 120px; background: #fff; }
-  .faq-head { grid-column: 2 / 12; align-items: center; text-align: center; }
-  .faq-head .qa-title { align-items: center; }
-  .faq-list {
-    grid-column: 2 / 12;
-    justify-self: center;
-    width: 100%;
-    max-width: calc(800px + var(--grid-gutter));
-    margin-top: 56px;
-    border-top: 1px solid #e5e7eb;
+  /* ---- FAQ: 위 = 제목·안내(가운데), 아래 = 핸드오프에게 묻는 채팅 창(가운데) ----
+     아직 안 물어본 질문은 입력창 위 추천 칩. 칩을 누르면 칩은 사라지고 내 말풍선이 대화창 맨 아래에 떠오르고,
+     핸드오프가 "쓰는 중" → 답한다. 대화는 위로 쌓이고, 채팅 창 크기는 변하지 않는다(JS) */
+  .faq-section { padding: 120px 0; background: #fff; }
+  .faq-side { grid-column: 1 / -1; }
+  .faq-side .qa-copy { align-items: center; text-align: center; }
+  .faq-side .qa-title { align-items: center; }
+  /* 답하는 쪽은 언제나 핸드오프 — 로고 아바타 */
+  .faq-avatar { flex: none; width: 32px; height: 32px; border-radius: 50%; background: #fff url('assets/nav/bi-icon.svg') center / 12px 18px no-repeat; box-shadow: inset 0 0 0 1px #e5e7eb; }
+  /* 채팅 창 */
+  .faq-chat { grid-column: 1 / -1; justify-self: center; width: 100%; max-width: 760px; margin-top: 48px; display: flex; flex-direction: column; border: 1px solid #e5e7eb; border-radius: 28px; background: #fff; box-shadow: 0 24px 60px rgba(17, 24, 39, 0.07); overflow: hidden; }
+  .faq-chat-head { display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 22px; border-bottom: 1px solid #f0f1f4; color: #111827; font-size: 15px; font-weight: 600; }
+  .faq-chat-head img { width: 12px; height: 18px; }
+  .faq-chat-head small { margin-left: auto; color: #9ca3af; font-size: 12px; font-weight: 500; }
+  /* 처음엔 400px로 그려 채팅 창 전체 높이를 잡고(JS가 그 높이로 창을 고정), 그 뒤론 남는 공간을 전부 가져간다(.is-flex) */
+  .faq-thread { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 24px 22px; scrollbar-width: none; }
+  .faq-thread::-webkit-scrollbar { display: none; }
+  .faq-thread.is-flex { flex: 1; height: auto; min-height: 0; }
+  .faq-thread > :first-child { margin-top: auto; } /* 대화가 적을 땐 아래쪽(입력창 쪽)부터 채워진다 */
+  .faq-me { align-self: flex-end; max-width: 80%; padding: 12px 18px; border-radius: 22px 22px 6px 22px; background: #1f2937; color: #fff; font-size: 15px; line-height: 1.55; }
+  .faq-ai { display: flex; align-items: flex-start; gap: 10px; max-width: 92%; }
+  .faq-who { color: #6b7280; font-size: 12px; font-weight: 600; }
+  .faq-bubble { position: relative; margin-top: 4px; padding: 12px 18px; border-radius: 6px 22px 22px 22px; background: #f3f5f9; color: #374151; font-size: 15px; line-height: 1.7; }
+  /* 쓰는 중: 작은 말풍선에 점 세 개 */
+  .faq-bubble.is-typing { width: 72px; height: 46px; padding: 0; }
+  .faq-bubble.is-typing::after { content: ""; position: absolute; top: 50%; left: 20px; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: #9ca3af; box-shadow: 12px 0 0 #9ca3af, 24px 0 0 #9ca3af; animation: faq-dots 1s ease-in-out infinite; }
+  @keyframes faq-dots { 50% { opacity: 0.35; } }
+  .faq-rise { animation: demo-rise 0.62s var(--spring) backwards; }
+  /* 추천 질문 칩 — 내용만큼만 차지. 줄 수가 줄면 영역이 부드럽게 줄고 그만큼 대화창이 늘어난다(채팅 창 높이는 고정) */
+  /* 칩은 입력창 쪽(아래)에 붙는다 — 두 줄이 한 줄로 줄면 위가 아니라 아래로 내려와 앉는다 */
+  .faq-chips { display: flex; flex-wrap: wrap; align-content: flex-end; justify-content: flex-end; gap: 8px; padding: 14px 22px 0; }
+  .faq-chip { padding: 9px 15px; border: 1px solid #dfe3ea; border-radius: 999px; background: #fff; color: #374151; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.15s ease-out, opacity 0.25s ease; }
+  .faq-chip:hover { border-color: #b9c6dc; }
+  .faq-chip:active { transform: scale(0.96); }
+  .faq-chip:focus-visible { outline: 2px solid #0158FD; outline-offset: 2px; }
+  .faq-chips-done { width: 100%; padding: 10px 24px; color: #9ca3af; font-size: 13px; line-height: 1.5; text-align: center; }
+  .faq-compose { display: flex; align-items: center; gap: 10px; margin: 12px 16px 16px; padding: 13px 18px; border: 1px solid #e5e7eb; border-radius: 999px; color: #9ca3af; font-size: 14px; }
+  .faq-compose b { color: #9ca3af; font-size: 17px; font-weight: 400; }
+  @media (prefers-reduced-motion: reduce) {
+    .faq-bubble.is-typing::after, .faq-rise { animation: none; }
+    .faq-chip { transition: none; }
   }
-  .faq-item { border-bottom: 1px solid #e5e7eb; }
-  .faq-q {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 24px 4px;
-    color: #111827;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 1.5;
-    list-style: none;
-    cursor: pointer;
-  }
-  .faq-q::-webkit-details-marker { display: none; }
-  .faq-q::after { content: "+"; flex: none; color: #9ca3af; font-size: 22px; font-weight: 400; transition: transform 0.2s ease; }
-  .faq-item[open] .faq-q::after { transform: rotate(45deg); }
-  .faq-q:focus-visible { outline: 2px solid #0158FD; outline-offset: 2px; border-radius: 4px; }
-  .faq-a { padding: 0 4px 24px; color: #4b5563; font-size: 15px; line-height: 1.7; letter-spacing: 0.2px; }
 
-  /* ---- 비전 섹션: 페이지를 닫는 한 문장. 어두운 배경 이미지 위 가운데 정렬 ---- */
+  /* ---- 비전 섹션: 페이지를 닫는 한 문장 — 히어로의 그 방으로 돌아온다 ----
+     배경은 히어로 영상의 마지막 장면(천창이 활짝 열린 방) 한 장(assets/sections/vision-room.jpg — 영상보다 훨씬 가볍다).
+     들어오면 덮여 있던 어둠이 걷히며 빛이 드는 것처럼 밝아진다(JS가 .is-lit). 글자 뒤는 가운데를 살짝 어둡게 눌러 읽히게 한다 */
   .vision-section {
-    padding: 200px 0;
-    /* 이미지 중앙이 가장 어두워 텍스트가 잘 읽힘 — 가독성 보강용 딤을 한 겹 얹음 */
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), #000 url('assets/sections/vision-bg.jpg') center / cover no-repeat;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 140px 0;
+    background: #040a1c;
+    overflow: hidden;
   }
-  .vision-copy { grid-column: 3 / 11; align-items: center; text-align: center; gap: 24px; }
+  .vision-room { position: absolute; inset: 0; pointer-events: none; }
+  .vision-room img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vision-room::before { content: ""; position: absolute; inset: 0; z-index: 1; background: #040a1c; opacity: 0.7; transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1); }
+  .vision-section.is-lit .vision-room::before { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { .vision-room::before { transition: none; } }
+  .vision-room::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(ellipse 60% 50% at 50% 55%, rgba(4, 10, 28, 0.55), rgba(4, 10, 28, 0.15) 75%); }
+  .vision-section > .grid { position: relative; z-index: 1; width: 100%; }
+  .vision-copy { grid-column: 1 / -1; align-items: center; text-align: center; gap: 24px; }
   .vision-copy .qa-title { align-items: center; color: #fff; }
   .vision-copy .qa-desc { color: rgba(255, 255, 255, 0.75); }
   .vision-eyebrow {
-    color: #0158FD;
+    color: #8fb3ff; /* 브랜드 파랑(#0158FD)은 어두운 방 배경에서 묻혀서, 같은 계열의 밝은 파랑 */
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 1.4px;
@@ -846,8 +1236,8 @@
   }
 
   /* ---- 푸터: 미니멀 ---- */
-  /* 위의 비전 섹션(어두운 배경 이미지)과 이어지도록 다크 */
-  .footer { padding: 100px 0; background: #000; }
+  /* 위의 비전 섹션(히어로와 같은 어두운 방)과 이어지도록 같은 남색 */
+  .footer { padding: 60px 0; background: #040a1c; }
   /* 워드마크는 단색 어두운 패스 — 흰색으로 반전. BI 아이콘은 그라디언트라 그대로 둠 */
   .footer-logo img:last-child { filter: brightness(0) invert(1); }
   .footer .grid { align-items: center; }
@@ -893,31 +1283,56 @@
     .qa-desc { font-size: 16px; }
     /* 모바일은 스크롤 핀(scroll-jack) 없이 일반 문서 흐름으로 노출 */
     /* 섹션 세로 리듬: 인접 섹션 패딩 합이 120px 안팎이 되도록 맞춤 */
-    .cards-section { height: auto; padding: 56px 0; }
-    .cards-pin-sticky { position: static; height: auto; display: block; }
-    .cards-row { display: block; } /* 한 장씩 세로로 — 간격은 card-item 마진으로 */
-    .cards-cta-grid { margin-bottom: 48px; }
+    .cards-section { padding: 64px 0; }
+    .duel { grid-template-columns: 1fr; gap: 28px; }
+    .duel-tile b { font-size: 24px; }
+    .cards-cta-grid { margin-bottom: 40px; }
     /* nowrap이면 24px 폰트가 375px 화면을 넘어서 잘림 */
     .cards-cta-grid .qa-title span { white-space: normal; }
-    .card-item:not(:last-child) { margin-bottom: 48px; }
-    .card-body { padding: 0; } /* 폭이 좁아 카드 이미지 좌변과 어긋나 보임 */
-    /* 스텝 섹션은 모바일에서 핀 없이 전체 펼침 — 미디어는 숨기고 항목을 모두 열어둠 */
-    .steps-section { height: auto; padding: 64px 0; }
-    .steps-sticky { position: static; height: auto; display: block; overflow: visible; }
-    .steps-media { display: none; }
-    .step-title { color: #111827; font-size: 20px; cursor: default; }
-    .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
-    .step-item { padding: 28px 0; }
+    /* 스텝 섹션은 모바일에서 세로로 쌓기만 하고 진행 인터랙션은 그대로 */
+    .steps-section { padding: 96px 0 64px; } /* 위 여백이 GNB(84px)보다 커야 제목이 안 가려진다 */
+    .steps-glow, .steps-section[data-step] .steps-glow { --gx: 50vw; width: 560px; height: 560px; } /* 폰은 탭이 세로라 가운데에서 색만 바뀐다 */
+    .steps-list { grid-template-columns: 1fr; gap: 8px; }
+    .step-title { white-space: normal; }
+    .steps-stage { grid-column: 1 / -1; height: 420px; min-height: 0; margin-top: 16px; }
+    /* 02·03 장면은 폰에서 좁은 폭용으로 다시 짠다(줄이는 배율을 덜 쓰려고) */
+    .decide { width: 420px; height: 500px; }
+    .dc-bubble { left: 0; width: 420px; flex-direction: column; gap: 14px; transform-origin: 50% 100%; }
+    .dc-sheet { width: 100%; }
+    .dc-status { top: 150px; }
+    .dc-thinking { top: 420px; left: 16px; }
+    .dc-composer { top: 444px; left: 0; width: 420px; }
+    .handy { width: 460px; }
+    .hd-body { padding: 18px 18px 0; --track: 200px; }
+    .hd-site { display: none; }
+    .hd-tr { grid-template-columns: 52px 66px 1fr 1fr 36px 50px; padding: 0 8px; }
+    .hd-call.is-compose { width: 424px; }
+    .hd-chat { width: 300px; }
+    .demo { width: calc(100% - 24px); }
+    .demo-q { margin-bottom: 24px; font-size: 18px; }
+    .demo-options { gap: 8px; }
+    .demo-opt-in { padding: 12px 12px 10px; }
+    .demo-title { font-size: 14px; }
+    .demo-sub { font-size: 12px; }
+    .demo-state { height: 30px; margin-top: 12px; font-size: 10px; }
     /* 상단 패딩이 GNB 높이(84px)보다 작으면, 이 섹션으로 자동 스크롤됐을 때(히어로 CTA·↓ 버튼)
        고정 GNB가 제목 윗줄을 가린다 — GNB 높이보다 여유 있게 잡는다 */
-    .story-section { padding: 96px 0; }
+    .story-section { height: calc(100vh + 1200px); }
+    .tw-layer { padding: 80px 0 24px; }
+    .tw-title { font-size: 26px; }
+    .tw-body { margin-top: 24px; gap: 14px; }
+    .tw-body p { font-size: 14px; }
+    .tw-word { font-size: calc(var(--fs, calc(13px + var(--d) * 34px)) * 0.7); }
+    .tw-word:nth-of-type(even) { display: none; } /* 폭이 좁아 반만 */
     .pricing-section { padding: 64px 0; }
     .pricing-row { display: block; margin-top: 40px; }
     .plan:not(:last-child) { margin-bottom: 20px; }
-    .faq-section { padding: 40px 0 64px; }
-    .faq-list { margin-top: 32px; }
-    .faq-q { padding: 20px 0; font-size: 16px; }
-    .faq-a { padding: 0 0 20px; }
+    .faq-section { padding: 64px 0; }
+    .faq-chat { margin-top: 32px; border-radius: 22px; }
+    .faq-thread { height: 340px; padding: 18px 16px; }
+    .faq-me, .faq-bubble { font-size: 14px; }
+    .faq-chips { padding: 12px 16px 0; }
+    .faq-chip { font-size: 13px; padding: 8px 13px; }
     .vision-section { padding: 96px 0; }
     /* 폰: 입력칸·버튼을 위아래로. 둘 다 터치 영역 52px 이상, 입력칸은 안쪽 위아래 여백을 넉넉히 */
     /* 입력칸+버튼이 쓰는 세로 공간(104px)을 처음부터 고정해 둔다 — 완료 시 버튼이 늘어나도
@@ -932,12 +1347,11 @@
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
        1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
     .steps-list,
-    .story-head, .story-body,
-    .cards-row, .cards-cta-grid .qa-copy,
+    .tw-title, .tw-body,
+    .cards-cta-grid .qa-copy,
     .pricing-head, .pricing-row, .pricing-addon,
-    .faq-head, .faq-list,
+    .faq-side, .faq-chat,
     .vision-copy { grid-column: 1 / -1; }
-    .story-body { margin-top: 32px; }
     .footer .grid { justify-items: center; text-align: center; }
     .footer-logo { justify-self: center; align-items: center; }
     .footer-copy { justify-self: center; align-items: center; }
@@ -989,98 +1403,242 @@
     </div>
   </section>
 
-  <section class="story-section">
+  <section class="steps-section" data-step="0">
+    <span class="steps-glow" aria-hidden="true"></span>
     <div class="grid">
-      <div class="qa-copy story-head">
+      <!-- 진행 표시: 화면에 들어오면 1→3 순서로 바가 저절로 차오른다. 지난 단계는 체크·꽉 찬 바,
+           지금 단계는 흰 카드·차오르는 바, 남은 단계는 번호·빈 바(JS playSteps가 --p 0~1) -->
+      <div class="steps-list">
+        <div class="step-item is-active">
+          <h2 class="step-head"><span class="step-mark"><span class="step-num">01</span><svg class="step-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><button type="button" class="step-title">카드 몇 번 고르기</button></h2>
+          <p class="step-desc">방법은 저희가 정해요</p>
+          <span class="step-bar" aria-hidden="true"><span></span></span>
+        </div>
+        <div class="step-item">
+          <h2 class="step-head"><span class="step-mark"><span class="step-num">02</span><svg class="step-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><button type="button" class="step-title">내 말로 듣고 결정</button></h2>
+          <p class="step-desc">갈림길마다 함께</p>
+          <span class="step-bar" aria-hidden="true"><span></span></span>
+        </div>
+        <div class="step-item">
+          <h2 class="step-head"><span class="step-mark"><span class="step-num">03</span><svg class="step-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><button type="button" class="step-title">끝나도 함께</button></h2>
+          <p class="step-desc">쓰고 넓힐 때도 곁에서</p>
+          <span class="step-bar" aria-hidden="true"><span></span></span>
+        </div>
+      </div>
+      <!-- 탭 아래 무대 — 단계마다 장면 하나(보여 주기용). 01: 커서가 카드 하나를 고르면 다음 질문 카드로 넘어가 또 하나를 고른다.
+           02: PD가 표로 제안 → 내 말로 다르게 요청 → PD가 다시 그려 표의 행·열이 내 말대로 뒤바뀜 → "네, 그게 낫네요"로 결정.
+           03: 완성된 산출물(대시보드)에서 「팀 호출하기」 → 질문 → BE가 데이터를 갈라 답하고 해당 행이 강조된다 -->
+      <div class="steps-stage" aria-hidden="true">
+        <div class="stage-pane is-active">
+          <div class="demo" id="pickDemo">
+            <div class="demo-screens">
+              <div class="demo-screen is-active" id="demoScreen1">
+                <p class="demo-q">무엇이 됐으면 하세요?</p>
+                <div class="demo-options">
+                  <div class="demo-opt" id="demoOpt1A"><div class="demo-opt-in"><p class="demo-label">선택지 A</p><p class="demo-title">반복되는 일을 대신 처리해줬으면 해요</p><p class="demo-sub">팔로업·알림·정리 같은 손 가는 일</p><span class="demo-state"><span>선택전 (중복선택 가능)</span><span>선택됨 (중복가능)</span></span></div></div>
+                  <div class="demo-opt" id="demoOpt1B"><div class="demo-opt-in"><p class="demo-label">선택지 B</p><p class="demo-title">성과·지표가 자동으로 집계·관리됐으면 해요</p><p class="demo-sub">ROI·ROAS·현황을 한눈에</p><span class="demo-state"><span>선택전 (중복선택 가능)</span><span>선택됨 (중복가능)</span></span></div></div>
+                </div>
+              </div>
+              <div class="demo-screen" id="demoScreen2">
+                <p class="demo-q">숫자는 어떻게 넣을까요?</p>
+                <div class="demo-options">
+                  <div class="demo-opt" id="demoOpt2A"><div class="demo-opt-in"><p class="demo-label">선택지 A</p><p class="demo-title">제가 직접 입력할게요</p><p class="demo-sub">표에 숫자만 넣으면 되게</p><span class="demo-state"><span>선택전 (중복선택 가능)</span><span>선택됨 (중복가능)</span></span></div></div>
+                  <div class="demo-opt" id="demoOpt2B"><div class="demo-opt-in"><p class="demo-label">선택지 B</p><p class="demo-title">광고 계정과 알아서 연결해 주세요</p><p class="demo-sub">메타·구글 광고 계정을 이어서</p><span class="demo-state"><span>선택전 (중복선택 가능)</span><span>선택됨 (중복가능)</span></span></div></div>
+                </div>
+              </div>
+            </div>
+            <svg class="demo-cursor" id="demoCursor" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3l14 7.2-6.1 1.6L10 18z" fill="#111827" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="stage-pane">
+          <div class="decide" id="decideDemo">
+            <div class="dc-bubble" id="dcBubble">
+              <div class="dc-sheet">
+                <p class="dc-sheet-title">광고 데이터 입력</p>
+                <div class="dc-grid" id="dcGrid"></div>
+              </div>
+              <div class="dc-talk">
+                <p class="dc-who">Product Designer</p>
+                <p class="dc-msg dc-msg-a">입력 화면 이렇게 잡아봤어요. 날짜를 세로로 쭉 놓고, 줄마다 채널을 골라 넣는 형태예요. 이대로 갈까요?</p>
+                <p class="dc-msg dc-msg-b">채널을 세로, 기간을 가로로 놨어요. 한 화면에서 표 채우듯 바로 넣으시면 돼요.</p>
+                <div class="dc-foot"><span class="dc-ask">질문하기</span><span class="dc-ok" id="dcOk">좋아요</span></div>
+              </div>
+            </div>
+            <div class="dc-status" id="dcStatus"><p>요청을 확인하고 PD가 화면을 다시 그리고 있어요…</p><span>자세히 보기</span></div>
+            <p class="dc-thinking" id="dcThinking">질문에 대해 고민하고 있어요…</p>
+            <div class="dc-composer" id="dcComposer"><span class="dc-plus">+</span><span class="dc-typed" id="dcTyped"></span><span class="dc-send" id="dcSend">Send</span></div>
+            <svg class="demo-cursor" id="dcCursor" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3l14 7.2-6.1 1.6L10 18z" fill="#111827" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="stage-pane">
+          <div class="handy" id="handyDemo">
+            <div class="hd-frame">
+              <div class="hd-bar"><span>‹ › ↻</span><span class="hd-url">roi-tracker-jisu.handoff.co.kr</span><span>나가기</span></div>
+              <div class="hd-body">
+                <div class="hd-head"><span class="hd-title">광고 ROI · ROAS 집계</span><span class="hd-site">roi-tracker-jisu.handoff.co.kr</span></div>
+                <div class="hd-chart" id="hdChart">
+                  <p class="hd-cap">평소 (지난 12주)</p>
+                  <div class="hd-row is-g" style="--v: 4.1"><b>Google</b><span class="hd-track"><span class="hd-fill"></span></span><span class="hd-val">4.1</span></div>
+                  <div class="hd-row is-m" style="--v: 3.0"><b>Meta</b><span class="hd-track"><span class="hd-fill"></span></span><span class="hd-val">3.0</span></div>
+                </div>
+                <p class="hd-label">이번 주 (2/17~2/23)</p>
+                <div class="hd-table">
+                  <div class="hd-tr"><span></span><span></span><span>광고비</span><span>매출</span><span>ROAS</span><span>평소 대비</span></div>
+                  <div class="hd-tr" id="hdFlag"><span>2/17~2/23</span><span class="hd-dot is-g">Google</span><span>1,340,000</span><span>5,100,000</span><span>3.8</span><span class="hd-down">▼ 0.3</span></div>
+                  <div class="hd-tr"><span></span><span class="hd-dot is-m">Meta</span><span>980,000</span><span>3,430,000</span><span>3.5</span><span class="hd-up">▲ 0.5</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="hd-call" id="hdCall">
+              <span class="hd-call-label"><img src="assets/nav/bi-icon.svg" alt="">팀 호출하기</span>
+              <span class="hd-call-input"><span class="hd-typed" id="hdTyped"></span><span class="hd-send" id="hdSend">Send</span></span>
+            </div>
+            <div class="hd-chat" id="hdChat">
+              <div class="hd-chat-head">Chat<span>새 채팅</span></div>
+              <div class="hd-msgs">
+                <div><p class="hd-meta" style="text-align: right">나 · 오후 03:42</p><p class="hd-me" id="hdMe"></p></div>
+                <div><p class="hd-meta">BE · 오후 03:42</p>
+                  <div class="hd-be" id="hdBe">
+                    <span class="hd-dots"><i></i><i></i><i></i></span>
+                    <p>Google 안에서 캠페인별로 갈라봤어요.</p>
+                    <p>기존 캠페인 3개 &nbsp;4.2 (평소 그대로)<br>지난주 새로 켠 것 &nbsp;1.9 <em>← 여기서 빠졌어요</em></p>
+                    <p>이번 주 Google 광고비의 30%가 그 새 캠페인에, 나머지는 평소대로예요.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="hd-chat-input">Ask anything..</div>
+            </div>
+            <svg class="demo-cursor" id="hdCursor" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3l14 7.2-6.1 1.6L10 18z" fill="#111827" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 번역 와이프: 번역 전 장과 번역 후 장을 같은 배치로 겹쳐 두고, 스크롤에 따라 핸들이 지나간 자리까지 번역 후 장이 드러난다(JS twFrame).
+       가운데는 단정한 제목·본문, 주변엔 백엔드·프론트·디자인·PM·PO 전문용어를 무질서하게 흩뿌렸다(번역 후 장에선 같은 자리에 내 말).
+       화면 낭독기는 번역 후 장만 읽는다 -->
+  <section class="story-section" id="storySection">
+    <div class="tw-stage" id="twStage">
+      <div class="tw-layer tw-layer--before" aria-hidden="true">
+        <span class="tw-word" style="--x: 6.9%; --y: 15.7%; --d: 0.15; --fs: 32px; --w: 600; --l: 90%; --o: 0.65">프로토타입</span>
+        <span class="tw-word" style="--x: 63.6%; --y: 41.6%; --d: 0.94">유저 스토리</span>
+        <span class="tw-word" style="--x: 5.9%; --y: 23.7%; --d: 0.1; --fs: 27px; --w: 400; --l: 84%; --o: 0.88">MVP</span>
+        <span class="tw-word" style="--x: 71.6%; --y: 12.9%; --d: 0.14; --fs: 13px; --w: 400; --l: 78%; --o: 0.51">인덱스</span>
+        <span class="tw-word" style="--x: 86.9%; --y: 48.5%; --d: 0.75">우선순위 매트릭스</span>
+        <span class="tw-word" style="--x: 31.8%; --y: 75.9%; --d: 0.11; --fs: 23px; --w: 500; --l: 84%; --o: 0.75">번들링</span>
+        <span class="tw-word" style="--x: 21.1%; --y: 92.3%; --d: 0.01; --fs: 32px; --w: 500; --l: 74%; --o: 0.85">API 엔드포인트</span>
+        <span class="tw-word" style="--x: 23.5%; --y: 24.9%; --d: 0.26; --fs: 19px; --w: 600; --l: 78%; --o: 0.95">디자인 시스템</span>
+        <span class="tw-word" style="--x: 61.6%; --y: 84.0%; --d: 0.18; --fs: 19px; --w: 500; --l: 74%; --o: 0.53">레이트 리밋</span>
+        <span class="tw-word" style="--x: 20.4%; --y: 57.3%; --d: 0.84">상태 관리</span>
+        <span class="tw-word" style="--x: 93.4%; --y: 93.5%; --d: 0.08; --fs: 32px; --w: 700; --l: 78%; --o: 0.52">마이그레이션</span>
+        <span class="tw-word" style="--x: 53.0%; --y: 49.6%; --d: 0.88">캐싱</span>
+        <span class="tw-word" style="--x: 81.6%; --y: 28.8%; --d: 0.06; --fs: 10px; --w: 500; --l: 78%; --o: 0.98">8pt 그리드</span>
+        <span class="tw-word" style="--x: 47.0%; --y: 24.0%; --d: 0.75">하이드레이션</span>
+        <span class="tw-word" style="--x: 70.0%; --y: 66.0%; --d: 0.94">와이어프레임</span>
+        <span class="tw-word" style="--x: 12.0%; --y: 80.8%; --d: 0.03; --fs: 12px; --w: 500; --l: 81%; --o: 0.62">스프린트</span>
+        <span class="tw-word" style="--x: 88.1%; --y: 59.8%; --d: 1.0">렌더링</span>
+        <span class="tw-word" style="--x: 84.6%; --y: 22.0%; --d: 0.21; --fs: 13px; --w: 800; --l: 90%; --o: 0.79">반응형</span>
+        <span class="tw-word" style="--x: 66.4%; --y: 74.1%; --d: 0.19; --fs: 12px; --w: 500; --l: 84%; --o: 0.61">스코프</span>
+        <span class="tw-word" style="--x: 96.2%; --y: 76.3%; --d: 0.22; --fs: 16px; --w: 700; --l: 78%; --o: 0.96">백로그</span>
+        <span class="tw-word" style="--x: 36.4%; --y: 13.1%; --d: 0.04; --fs: 14px; --w: 400; --l: 81%; --o: 0.62">KPI</span>
+        <span class="tw-word" style="--x: 9.0%; --y: 40.9%; --d: 0.85">로드맵</span>
+        <span class="tw-word" style="--x: 63.8%; --y: 25.7%; --d: 0.24; --fs: 32px; --w: 800; --l: 74%; --o: 0.78">마일스톤</span>
+        <span class="tw-word" style="--x: 88.5%; --y: 86.3%; --d: 0.04; --fs: 16px; --w: 400; --l: 81%; --o: 0.65">어포던스</span>
+        <div class="grid">
+          <h2 class="tw-title"><span>무엇이든 만들 수 있게 됐는데,</span><span>어느 순간 손이 멈춥니다.</span></h2>
+          <div class="tw-body">
+            <p>“이거 내가 건드리면 안 될 것 같은데.”<br>결과물은 빠르게 쌓이는데, 이해하지 못한 채 쌓인 것도 그만큼 쌓입니다. 그러다 고칠 수도, 무엇이 잘못됐는지 짚어낼 수도 없는 상태가 됩니다.</p>
+            <p>잘 쓰려면 그 영역을 공부해야 하고, 쓰면 쓸수록 알아야 할 것은 끝없이 늘어납니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서는 스스로를 “문외한”이라고 부릅니다.</p>
+            <p>문제는 실력이 아닙니다.<br><strong>내 것이 아닌 남의 직무를 먼저 배워야 한다는 전제입니다.</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="tw-layer tw-layer--after">
+        <span class="tw-word" style="--x: 6.9%; --y: 15.7%; --d: 0.15; --fs: 32px; --w: 600; --l: 90%; --o: 0.65">눌러 보는 시안</span>
+        <span class="tw-word" style="--x: 63.6%; --y: 41.6%; --d: 0.94">누가 왜 쓰는지</span>
+        <span class="tw-word" style="--x: 5.9%; --y: 23.7%; --d: 0.1; --fs: 27px; --w: 400; --l: 84%; --o: 0.88">최소한으로 먼저</span>
+        <span class="tw-word" style="--x: 71.6%; --y: 12.9%; --d: 0.14; --fs: 13px; --w: 400; --l: 78%; --o: 0.51">빨리 찾는 목차</span>
+        <span class="tw-word" style="--x: 86.9%; --y: 48.5%; --d: 0.75">뭐부터 할지 표</span>
+        <span class="tw-word" style="--x: 31.8%; --y: 75.9%; --d: 0.11; --fs: 23px; --w: 500; --l: 84%; --o: 0.75">파일 묶기</span>
+        <span class="tw-word" style="--x: 21.1%; --y: 92.3%; --d: 0.01; --fs: 32px; --w: 500; --l: 74%; --o: 0.85">기능 주소</span>
+        <span class="tw-word" style="--x: 23.5%; --y: 24.9%; --d: 0.26; --fs: 19px; --w: 600; --l: 78%; --o: 0.95">공통 부품 규칙</span>
+        <span class="tw-word" style="--x: 61.6%; --y: 84.0%; --d: 0.18; --fs: 19px; --w: 500; --l: 74%; --o: 0.53">한꺼번에 몰리지 않게</span>
+        <span class="tw-word" style="--x: 20.4%; --y: 57.3%; --d: 0.84">화면이 기억하는 것</span>
+        <span class="tw-word" style="--x: 93.4%; --y: 93.5%; --d: 0.08; --fs: 32px; --w: 700; --l: 78%; --o: 0.52">데이터 이사</span>
+        <span class="tw-word" style="--x: 53.0%; --y: 49.6%; --d: 0.88">자주 쓰는 건 미리 꺼내 두기</span>
+        <span class="tw-word" style="--x: 81.6%; --y: 28.8%; --d: 0.06; --fs: 10px; --w: 500; --l: 78%; --o: 0.98">칸 맞추기</span>
+        <span class="tw-word" style="--x: 47.0%; --y: 24.0%; --d: 0.75">화면에 동작 입히기</span>
+        <span class="tw-word" style="--x: 70.0%; --y: 66.0%; --d: 0.94">뼈대 그림</span>
+        <span class="tw-word" style="--x: 12.0%; --y: 80.8%; --d: 0.03; --fs: 12px; --w: 500; --l: 81%; --o: 0.62">2주 작업 묶음</span>
+        <span class="tw-word" style="--x: 88.1%; --y: 59.8%; --d: 1.0">화면 그리기</span>
+        <span class="tw-word" style="--x: 84.6%; --y: 22.0%; --d: 0.21; --fs: 13px; --w: 800; --l: 90%; --o: 0.79">폰에서도 맞게</span>
+        <span class="tw-word" style="--x: 66.4%; --y: 74.1%; --d: 0.19; --fs: 12px; --w: 500; --l: 84%; --o: 0.61">이번에 할 범위</span>
+        <span class="tw-word" style="--x: 96.2%; --y: 76.3%; --d: 0.22; --fs: 16px; --w: 700; --l: 78%; --o: 0.96">해야 할 일 목록</span>
+        <span class="tw-word" style="--x: 36.4%; --y: 13.1%; --d: 0.04; --fs: 14px; --w: 400; --l: 81%; --o: 0.62">잘됐는지 볼 숫자</span>
+        <span class="tw-word" style="--x: 9.0%; --y: 40.9%; --d: 0.85">언제 뭘 할지</span>
+        <span class="tw-word" style="--x: 63.8%; --y: 25.7%; --d: 0.24; --fs: 32px; --w: 800; --l: 74%; --o: 0.78">중간 목표 지점</span>
+        <span class="tw-word" style="--x: 88.5%; --y: 86.3%; --d: 0.04; --fs: 16px; --w: 400; --l: 81%; --o: 0.65">누를 수 있어 보이게</span>
+        <div class="grid">
+          <h2 class="tw-title"><span>같은 이야기를 내 말로 들으면,</span><span>다시 손이 움직입니다.</span></h2>
+          <div class="tw-body">
+            <p>“아, 이건 이렇게 바꾸면 되는구나.”<br>무엇을 왜 하는지 알아듣고 나니, 결과물이 쌓이는 만큼 이해도 같이 쌓입니다. 직접 고칠 수 있고, 무엇이 잘못됐는지도 짚어낼 수 있습니다.</p>
+            <p>모르는 말은 내가 아는 말로 바뀌어 옵니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서도 스스로 결정을 내릴 수 있습니다.</p>
+            <p>문제는 실력이 아니었습니다.<br><strong>남의 직무를 먼저 배워야 한다는 전제를, 핸드오프가 지웁니다.</strong></p>
+          </div>
+        </div>
+      </div>
+      <span class="tw-handle" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="cards-section" id="duelSection">
+    <div class="grid cards-cta-grid">
+      <div class="qa-copy">
         <h2 class="qa-title">
-          <span class="reveal-line" data-reveal-index="0">무엇이든 만들 수 있게 됐는데,</span>
-          <span class="reveal-line" data-reveal-index="1">어느 순간 손이 멈춥니다.</span>
+          <span class="reveal-line" data-reveal-index="0">시키는 대로 하기 전에,</span>
+          <span class="reveal-line" data-reveal-index="0.67">맞는 방법인지 먼저 봅니다.</span>
         </h2>
-      </div>
-      <div class="qa-copy story-body">
-        <p class="qa-desc reveal-line" data-reveal-index="0">“이거 내가 건드리면 안 될 것 같은데.”<br>결과물은 빠르게 쌓이는데, 이해하지 못한 채 쌓인 것도 그만큼 쌓입니다. 그러다 고칠 수도, 무엇이 잘못됐는지 짚어낼 수도 없는 상태가 됩니다.</p>
-        <p class="qa-desc reveal-line" data-reveal-index="1">잘 쓰려면 그 영역을 공부해야 하고, 쓰면 쓸수록 알아야 할 것은 끝없이 늘어납니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서는 스스로를 “문외한”이라고 부릅니다.</p>
-        <p class="qa-desc reveal-line" data-reveal-index="2">문제는 실력이 아닙니다.<br><strong>내 것이 아닌 남의 직무를 먼저 배워야 한다는 전제입니다.</strong></p>
+        <p class="qa-desc reveal-line" data-reveal-index="1.33">핸드오프에서 목적은 당신 것, 방법은 우리 것.<br>그래서 방법에 대해서만 반대할 자격이 생깁니다.</p>
       </div>
     </div>
-  </section>
-
-  <section class="cards-section" id="cardsPinOuter">
-    <div class="cards-pin-sticky">
-     <div class="cards-bundle">
-      <div class="grid cards-cta-grid">
-        <div class="qa-copy">
-          <h2 class="qa-title">
-            <span class="reveal-line" data-reveal-index="0">다른 어떤 서비스도,</span>
-            <span class="reveal-line" data-reveal-index="0.67">이 장면을 만들지 않습니다.</span>
-          </h2>
-          <p class="qa-desc reveal-line" data-reveal-index="1.33">핸드오프에서 목적은 당신 것, 방법은 우리 것.<br>그래서 방법에 대해서만 반대할 자격이 생깁니다.</p>
-        </div>
-      </div>
-      <div class="grid cards-grid">
-        <div class="cards-row">
-          <div class="card-item reveal-line" data-reveal-index="0">
-            <div class="card-media"><img src="assets/mockups/card-01.png" alt="유저의 말"></div>
-            <div class="card-body">
-              <p class="card-label"><span class="card-num">01</span> 유저의 말</p>
-              <p class="card-desc">유저는 자신의 지식 안에서 부담없이 의견을 제시하고 제안합니다.</p>
+    <!-- 같은 질문, 두 개의 창 — 화면에 들어오면 저절로 진행된다(JS renderDuel) -->
+    <div class="grid">
+      <div class="duel" id="duel">
+        <div class="duel-win duel-win--other">
+          <div class="duel-frame">
+            <div class="duel-head"><i></i>요청 그대로 하면</div>
+            <div class="duel-body">
+              <p class="duel-me duel-in" data-at="300">ROAS는 그냥 매출 나누기 광고비니까, 채널별로 다 더해서 한 번에 계산하면 되죠?</p>
+              <p class="duel-ai duel-in" data-at="700" data-typing="1100">네, 계산했어요! 전체 ROAS는 <b>1.3</b>이에요.</p>
+              <p class="duel-done duel-in" data-at="1300">✓ 요청대로 완료</p>
             </div>
           </div>
-          <div class="card-item reveal-line" data-reveal-index="1">
-            <div class="card-media"><img src="assets/mockups/card-02.png" alt="핸드오프의 응답"></div>
-            <div class="card-body">
-              <p class="card-label"><span class="card-num">02</span> 핸드오프의 응답</p>
-              <p class="card-desc">유저가 알아듣지 못하는 전문용어도, 프로세스도 여과없이 던지지 않습니다. 처음부터 끝까지 유저의 언어로 소통합니다.</p>
+          <p class="duel-cap duel-in" data-at="7000">빠르지만, 숫자가 달라질 수 있어요.</p>
+        </div>
+        <div class="duel-win duel-win--handoff">
+          <div class="duel-frame">
+            <div class="duel-head"><img src="assets/nav/bi-icon.svg" alt="">핸드오프는<small>목적부터 봅니다</small></div>
+            <div class="duel-body">
+              <p class="duel-me duel-in" data-at="300">ROAS는 그냥 매출 나누기 광고비니까, 채널별로 다 더해서 한 번에 계산하면 되죠?</p>
+              <p class="duel-ai duel-in" data-at="700" data-typing="1900">잠깐요. 그렇게 다 더하면 숫자가 달라져요. 같은 데이터로 두 번 계산해 볼게요.</p>
+              <div class="duel-tiles">
+                <div class="duel-tile duel-tile--a duel-in" data-at="2500" id="duelTileA">
+                  <span>통째로 더해서 나누면</span>
+                  <span class="duel-bars"><i style="--w: 100%"></i></span>
+                  <b data-to="1.3" data-from="2600" data-until="3400">0.0</b>
+                </div>
+                <span class="duel-x duel-in" data-at="4900">× 3</span>
+                <div class="duel-tile duel-tile--b duel-in" data-at="3600" id="duelTileB">
+                  <span>채널별로 묶고 나서 나누면</span>
+                  <span class="duel-bars"><i style="--w: 92%"></i><i style="--w: 74%"></i><i style="--w: 66%"></i></span>
+                  <b data-to="4.0" data-from="3700" data-until="4700">0.0</b>
+                </div>
+              </div>
+              <div class="duel-choices duel-in" data-at="5500"><span class="duel-btn">통째로</span><span class="duel-btn duel-btn--solid" id="duelPick">아, 묶고 나서로</span></div>
             </div>
           </div>
-          <div class="card-item reveal-line" data-reveal-index="2">
-            <div class="card-media"><img src="assets/mockups/card-03.png" alt="같은 데이터, 두 개의 답"></div>
-            <div class="card-body">
-              <p class="card-label"><span class="card-num">03</span> 같은 데이터, 두 개의 답</p>
-              <p class="card-desc">유저의 요청에 무조건적으로 따라가지 않습니다. 목표 달성과 프로젝트에 가장 최적의 답변과 실행을 합니다.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-     </div>
-    </div>
-  </section>
-
-  <section class="steps-section" id="stepsOuter">
-    <div class="steps-sticky">
-      <div class="grid">
-        <div class="steps-list">
-          <div class="step-item is-active">
-            <h2><button type="button" class="step-title">하고 싶은 걸 편한 말로, 한 번만</button></h2>
-            <div class="step-desc-wrap"><div>
-              <p class="step-desc">그 다음부턴 MBTI 하듯 카드를 몇 번 고르기만 하면 무엇이 필요한지, 어떻게 만들어야하는지는 저희가 맡습니다.</p>
-            </div></div>
-          </div>
-          <div class="step-item">
-            <h2><button type="button" class="step-title">왜 이런지 내 말로 듣고, 내 말로 결정</button></h2>
-            <div class="step-desc-wrap"><div>
-              <p class="step-desc">내가 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
-            </div></div>
-          </div>
-          <div class="step-item">
-            <h2><button type="button" class="step-title">프로젝트가 끝나도, 팀은 멈추지 않습니다</button></h2>
-            <div class="step-desc-wrap"><div>
-              <p class="step-desc">완성된 산출물을 사용하고 확장할 때도 언제나 함께합니다.</p>
-            </div></div>
-          </div>
-        </div>
-        <!-- 스텝별 미디어 자리. 자산이 준비되면 해당 .step-media 안의 .step-skeleton을
-             <video src="…" autoplay muted loop playsinline></video> 또는 <img src="…" alt="…"> 로 교체 -->
-        <div class="steps-media">
-          <div class="step-media is-active">
-            <video class="is-zoomed" src="assets/sections/step-01.mp4" muted loop playsinline preload="none"></video>
-          </div>
-          <div class="step-media">
-            <video class="is-contain" src="assets/sections/step-02.mp4" muted loop playsinline preload="none"></video>
-          </div>
-          <div class="step-media">
-            <video class="is-trim-right" src="assets/sections/step-03.mp4" muted loop playsinline preload="none"></video>
-          </div>
+          <p class="duel-cap duel-in" data-at="7000">한 번 멈추고, 맞는 방법을 함께 정해요.</p>
         </div>
       </div>
     </div>
@@ -1100,6 +1658,7 @@
       <div class="pricing-row">
         <div class="plan">
           <p class="plan-name">Free</p>
+          <p class="plan-for">“일단 한 번 해 보고 싶어요”</p>
           <p class="plan-price"><b>₩0</b></p>
           <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">무료로 시작하기</a>
           <p class="plan-incl">Free에 포함된 기능</p>
@@ -1112,7 +1671,8 @@
         </div>
         <div class="plan plan--featured">
           <p class="plan-name">Starter</p>
-          <p class="plan-price"><b>₩29,000</b><span>/월</span></p>
+          <p class="plan-for">“일할 때마다 계속 쓰고 싶어요”</p>
+          <p class="plan-price"><b data-count="29000">₩29,000</b><span>/월</span></p>
           <a href="#" class="plan-cta plan-cta--solid js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Free의 모든 기능과 함께…</p>
           <ul class="plan-list">
@@ -1125,7 +1685,8 @@
         </div>
         <div class="plan">
           <p class="plan-name">Pro</p>
-          <p class="plan-price"><b>₩59,000</b><span>/월</span></p>
+          <p class="plan-for">“여러 개를 굴리며 넓혀 가고 싶어요”</p>
+          <p class="plan-price"><b data-count="59000">₩59,000</b><span>/월</span></p>
           <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Starter의 모든 기능과 함께…</p>
           <ul class="plan-list">
@@ -1142,39 +1703,40 @@
     </div>
   </section>
 
+  <!-- FAQ = 핸드오프에게 묻는 채팅(답은 모두 핸드오프). 첫 질문은 처음부터 대화에 들어 있고, 나머지는 추천 칩 — 누르면 대화로 보내진다(JS).
+       답 원문은 칩의 data-a에, 검색엔진용으로는 head의 FAQPage 구조화 데이터에 같은 내용이 있다 -->
   <section class="faq-section" id="faq">
     <div class="grid">
-      <div class="qa-copy faq-head">
-        <h2 class="qa-title">
-          <span class="reveal-line" data-reveal-index="0">자주 묻는 질문</span>
-        </h2>
+      <div class="faq-side">
+        <div class="qa-copy">
+          <h2 class="qa-title"><span class="reveal-line" data-reveal-index="0">자주 묻는 질문</span></h2>
+          <p class="qa-desc reveal-line" data-reveal-index="1">궁금한 건 핸드오프에게 바로 물어보세요.</p>
+        </div>
       </div>
-      <div class="faq-list">
-        <details class="faq-item" open>
-          <summary class="faq-q">핸드오프는 무엇인가요?</summary>
-          <p class="faq-a">핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-q">AI나 전문 분야를 몰라도 쓸 수 있나요?</summary>
-          <p class="faq-a">네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-q">다른 AI 도구와 무엇이 다른가요?</summary>
-          <p class="faq-a">핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-q">요금은 얼마인가요?</summary>
-          <p class="faq-a">Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-q">언제부터 쓸 수 있나요?</summary>
-          <p class="faq-a">2026년 하반기에 출시할 예정입니다.</p>
-        </details>
+      <div class="faq-chat">
+        <div class="faq-chat-head"><img src="assets/nav/bi-icon.svg" alt="">핸드오프에게 물어보기<small>보통 바로 답해요</small></div>
+        <div class="faq-thread" id="faqThread" role="log" aria-live="polite">
+          <p class="faq-me">핸드오프는 무엇인가요?</p>
+          <div class="faq-ai"><span class="faq-avatar"></span><div><p class="faq-who">Handoff</p><p class="faq-bubble">핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.</p></div></div>
+        </div>
+        <div class="faq-chips" id="faqChips">
+          <button type="button" class="faq-chip" data-a="네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.">AI나 전문 분야를 몰라도 쓸 수 있나요?</button>
+          <button type="button" class="faq-chip" data-a="광고 성과 대시보드, 고객 문의 정리 도구, 재고·주문 관리 화면처럼 내 일에 바로 쓰는 업무 도구를 만듭니다. 하고 싶은 일을 말하면, 어떤 형태가 맞는지부터 함께 정합니다.">어떤 걸 만들 수 있나요?</button>
+          <button type="button" class="faq-chip" data-a="핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다.">다른 AI 도구와 무엇이 다른가요?</button>
+          <button type="button" class="faq-chip" data-a="네. 완성된 산출물 안에서 언제든 핸드오프를 불러 물어보고, 고치고, 새 화면이나 지표를 더할 수 있습니다. 프로젝트가 끝나도 쓰는 동안 계속 함께합니다.">만든 걸 나중에 고치거나 넓힐 수 있나요?</button>
+          <button type="button" class="faq-chip" data-a="Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다.">요금은 얼마인가요?</button>
+          <button type="button" class="faq-chip" data-a="2026년 하반기에 출시할 예정입니다.">언제부터 쓸 수 있나요?</button>
+        </div>
+        <div class="faq-compose" aria-hidden="true"><b>+</b>Ask anything…</div>
       </div>
     </div>
   </section>
 
-  <section class="vision-section">
+  <section class="vision-section" id="visionSection">
+    <!-- 히어로 영상의 마지막 장면(천창이 활짝 열린 방) — 들어오면 어둠이 걷히며 밝아진다 -->
+    <div class="vision-room" aria-hidden="true">
+      <img src="assets/sections/vision-room.jpg" alt="" loading="lazy" decoding="async">
+    </div>
     <div class="grid">
       <div class="qa-copy vision-copy">
         <p class="vision-eyebrow reveal-line" data-reveal-index="0">Our Vision</p>
@@ -1255,9 +1817,7 @@
   // <br>로 나뉘던 줄(reveal-line)은 그룹(.qa-copy) 진행률을 공유하며 순차적으로 올라옴 (duration 50% 중첩)
   const REVEAL_DURATION = 0.5;
   const REVEAL_STAGGER = REVEAL_DURATION * 0.5;
-  // #cardsPinOuter 안쪽은 스크롤이 핀(pin)되는 동안 자체 진행률로 따로 애니메이션되므로 제외
   const revealGroups = Array.from(document.querySelectorAll('.qa-copy'))
-    .filter((el) => !el.closest('#cardsPinOuter'))
     .map((group) => ({
       group,
       lines: group.querySelectorAll('.reveal-line'),
@@ -1285,34 +1845,6 @@
     });
   }
 
-  // ---- 카드 섹션: 스크롤이 핀되는 동안(cardsPinOuter의 스크롤 예산 내) 카드 → 텍스트 순으로 재생 ----
-  const cardsPinOuter = document.getElementById('cardsPinOuter');
-  // duration > stagger여야 카드끼리 등장이 겹쳐서 흐름이 끊기지 않음. 다만 너무 겹치면 세 장이
-  // 한꺼번에 올라오는 것처럼 보여서 stagger를 duration의 절반까지 벌림.
-  // 2*0.3 + 0.4 = 1 → 마지막 카드도 카드 창(0~0.75) 끝에서 정확히 완료.
-  const CARDS_DURATION = 0.4;
-  const CARDS_STAGGER = 0.3;
-  // 텍스트가 먼저 올라오고(0~0.3) 카드가 뒤따름(0.25~1) — 0.05만큼 겹쳐서 흐름이 끊기지 않게 함
-  const cardsPinGroups = [
-    { lines: document.querySelectorAll('.cards-cta-grid .reveal-line'), start: 0, end: 0.3 },
-    { lines: document.querySelectorAll('.cards-row .reveal-line'), start: 0.25, end: 1, duration: CARDS_DURATION, stagger: CARDS_STAGGER, distance: 64, scale: 0.04 },
-  ];
-  let cardsPinCurrent = 0;
-
-  const CARDS_LEAD_VH = 0.5; // 히어로→카드 전환이 이만큼(뷰포트 비율) 진행된 시점부터 카드가 올라오기 시작
-  const CARDS_ANIM_PX = 1000; // 핀이 걸린 뒤 재생에 쓰는 스크롤 예산 (진입 구간 lead는 여기에 더해짐)
-  const CARDS_HOLD_PX = 120; // 애니메이션이 끝난 뒤 다음 섹션으로 넘어가기 전 순수 대기 스크롤량
-
-  // 진입 구간을 lead만큼 미리 먹고 들어가되(핀 전부터 올라오기 시작), 예산도 그만큼 늘려서
-  // 핀 이후에 쓰는 양은 CARDS_ANIM_PX 그대로 → CSS의 섹션 높이(=ANIM+HOLD)와 hold가 유지됨.
-  // (주의: lead 구간은 배경도 같이 스크롤되고 핀 이후엔 고정되므로 체감 속도가 살짝 달라짐)
-  // 모바일은 핀 자체가 없으므로(섹션이 일반 흐름) 섹션 진입 기준을 그대로 씀.
-  function getCardsPinProgress() {
-    const rect = cardsPinOuter.getBoundingClientRect();
-    const lead = window.innerHeight * (MOBILE ? 1 : CARDS_LEAD_VH);
-    return Math.min(1, Math.max(0, (lead - rect.top) / (lead + CARDS_ANIM_PX)));
-  }
-
   function revealLoop() {
     revealGroups.forEach((state) => {
       const target = revealTarget(state.group);
@@ -1320,62 +1852,504 @@
       applyRevealLines(state.lines, state.current);
     });
 
-    const cardsPinTarget = getCardsPinProgress();
-    cardsPinCurrent += (cardsPinTarget - cardsPinCurrent) * 0.15;
-    cardsPinGroups.forEach(({ lines, start, end, duration, stagger, distance, scale }) => {
-      const local = Math.min(1, Math.max(0, (cardsPinCurrent - start) / (end - start)));
-      applyRevealLines(lines, local, duration, stagger, distance, scale);
-    });
-
     requestAnimationFrame(revealLoop);
   }
   // 인라인 스타일이 CSS의 prefers-reduced-motion 규칙을 덮어쓰므로, 아예 루프를 돌리지 않아야 CSS 최종 상태가 남음
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(revealLoop);
 
-  // ---- 스텝 섹션: 핀된 동안 스크롤 구간을 스텝 수로 나눠 활성 항목만 열고 우측 미디어를 전환 ----
-  // 값 보간이 아니라 클래스 토글(전환은 CSS transition 담당)이라 rAF 대신 scroll 이벤트로 충분함.
-  // reveal 루프에 얹지 않은 이유: reduced-motion에서 그 루프는 아예 돌지 않아 스텝이 멈춰버림.
-  const stepsOuter = document.getElementById('stepsOuter');
-  const stepItems = document.querySelectorAll('.step-item');
-  const stepMedia = document.querySelectorAll('.step-media');
-  const STEP_PX = 700; // 스텝 하나가 점유하는 스크롤량
-  let stepActive = -1; // -1로 시작해 최초 호출이 항상 반영되도록 (첫 스텝 영상 재생 포함)
+  // ---- 스텝 섹션: 화면에 들어오면 1번부터 바가 시간에 맞춰 차오르고, 다 차면 다음 칸으로 넘어간다 ----
+  // 스크롤과는 무관(스크롤은 그냥 페이지를 내린다). 섹션에 들어오면(화면 밖에 있다가 60% 이상 보이면) 1번부터 시작해
+  // 끝까지 가면 1번부터 다시 — 무한 반복. 화면 밖으로 나가도 멈추지 않지만, 다시 들어오면 1번부터 보여 준다
+  // (안 보는 동안 돌던 중간 장면이 첫인상이 되지 않게). 칸을 누르면 그 칸부터 이어서 채운다
+  const stepsSection = document.querySelector('.steps-section');
+  const stepsList = document.querySelector('.steps-list');
+  const stepItems = stepsList.querySelectorAll('.step-item');
+  // 칸마다 다 차는 시간 — 02는 장면이 길어(제안 → 입력 → 고민 → 반영 → 결정) 더 길게
+  const STEP_MS = [4000, 8500, 9500];
+  const STEP_AT = STEP_MS.reduce((acc, ms) => { acc.push(acc[acc.length - 1] + ms); return acc; }, [0]); // 칸별 시작 시각(누적)
+  let stepActive = -1;
+  let stepRaf = 0;
+  let stepT0 = 0;
+  let stepsOut = true; // 섹션이 화면 밖에 완전히 나가 있었는지 — 다시 들어올 때 1번부터 시작할지 판단
 
-  function updateSteps() {
-    // 히어로가 스크롤을 붙잡고 있는 동안은 이 섹션과 아무 관계가 없다 — 그런데도 스크롤/휠 이벤트마다
-    // getBoundingClientRect()(레이아웃 강제 계산)를 해 왔다. 무한 회전 휠 마우스처럼 짧은 시간에
-    // 이벤트가 수십~수백 번 쏟아지는 경우 이게 쌓여 버벅임·깜빡임으로 나타난다
-    if (isHeroLocked()) return;
-    const consumed = -stepsOuter.getBoundingClientRect().top;
-    const next = Math.min(stepItems.length - 1, Math.max(0, Math.floor(consumed / STEP_PX)));
-    if (next === stepActive) return;
-    stepActive = next;
-    stepItems.forEach((el, i) => el.classList.toggle('is-active', i === next));
-    if (MOBILE) return; // 미디어 패널이 숨겨져 있음 — play()로 mp4를 받게 두면 데이터만 낭비
-    stepMedia.forEach((el, i) => {
-      el.classList.toggle('is-active', i === next);
-      // preload="none" + 활성 스텝만 재생 — 보이지도 않는 영상을 미리 내려받지 않게 함
-      const video = el.querySelector('video');
-      if (!video) return;
-      // 활성될 때마다 처음부터 — 이어 재생이면 클릭으로 돌아왔을 때 중간부터 나옴
-      if (i === next) { video.currentTime = 0; video.play().catch(() => {}); } else video.pause();
+  // ---- 01 장면: 카드 고르기 데모. p(0~1) = 01 진행 바와 같은 값 →
+  // 바가 차는 동안 커서가 첫 질문에서 B를 고르고 → 다음 질문 카드로 넘어가 → A를 고른다 ----
+  // 이 코드는 스크립트 실행 중 바로 불리므로(renderSteps(0)) 아래쪽 히어로 코드의 easeInOut·lerp를 쓰지 않는다(아직 선언 전)
+  const stagePanes = document.querySelectorAll('.stage-pane');
+  const demoEl = document.getElementById('pickDemo');
+  const demoScreen1 = document.getElementById('demoScreen1');
+  const demoScreen2 = document.getElementById('demoScreen2');
+  const demoPick1 = document.getElementById('demoOpt1B'); // 첫 질문에서 고를 카드
+  const demoPick2 = document.getElementById('demoOpt2A'); // 두 번째 질문에서 고를 카드
+  const demoCursor = document.getElementById('demoCursor');
+  const demoEase = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const demoSeg = (p, a, b) => demoEase(Math.min(1, Math.max(0, (p - a) / (b - a))));
+  // 커서가 누르는 자리: 카드 안쪽 가운데보다 살짝 오른쪽 아래(offset은 위치가 잡힌 .demo 기준)
+  const demoPt = (el) => [el.offsetLeft + el.offsetWidth * 0.55, el.offsetTop + el.offsetHeight * 0.6];
+  const demoMix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  function renderPickDemo(p) {
+    const start = [demoEl.offsetWidth * 0.8, demoEl.offsetHeight * 1.1];
+    const P1 = demoPt(demoPick1), P2 = demoPt(demoPick2);
+    const pos = p < 0.45 ? demoMix(start, P1, demoSeg(p, 0.08, 0.26)) : demoMix(P1, P2, demoSeg(p, 0.5, 0.68));
+    // 클릭 순간 커서가 살짝 눌렸다 돌아온다(0.3·0.72 지점)
+    const press = Math.max(0, 1 - Math.abs(p - 0.3) / 0.03, 1 - Math.abs(p - 0.72) / 0.03);
+    demoCursor.style.transform = `translate(${pos[0]}px, ${pos[1]}px) scale(${1 - 0.18 * press})`;
+    demoCursor.classList.toggle('is-on', p > 0.04);
+    demoPick1.classList.toggle('is-press', p >= 0.28 && p < 0.32);
+    demoPick1.classList.toggle('is-chosen', p >= 0.3);
+    demoScreen1.classList.toggle('is-picked', p >= 0.3);
+    // 고르고 한 박자 뒤 다음 질문으로
+    const second = p >= 0.42;
+    demoScreen1.classList.toggle('is-active', !second);
+    demoScreen1.classList.toggle('is-past', second);
+    demoScreen2.classList.toggle('is-active', second);
+    demoPick2.classList.toggle('is-press', p >= 0.7 && p < 0.74);
+    demoPick2.classList.toggle('is-chosen', p >= 0.72);
+    demoScreen2.classList.toggle('is-picked', p >= 0.72);
+  }
+
+  // ---- 02 장면: 내 말로 듣고 결정. p(0~1) = 02 진행 바와 같은 값 ----
+  //  0.02 PD 말풍선(표: 날짜 세로) → 0.10~0.34 내 말 타이핑(8.5초 기준 글자당 약 50ms) → 0.44 Send
+  //  → 0.45 말풍선 닫히고 "다시 그리는 중" → 0.62 말풍선 다시 열림 → 0.66 표의 행·열이 뒤바뀜 → 0.89 "네, 그게 낫네요" 눌러 결정
+  //  커서는 장면 시작과 함께 입력창 위에 나타나 타이핑하는 동안 가만히 있다가 Send로 → 결정 버튼으로 옮겨 간다
+  const decideEl = document.getElementById('decideDemo');
+  const dcBubble = document.getElementById('dcBubble');
+  const dcGrid = document.getElementById('dcGrid');
+  const dcOk = document.getElementById('dcOk');
+  const dcStatus = document.getElementById('dcStatus');
+  const dcThinking = document.getElementById('dcThinking');
+  const dcComposer = document.getElementById('dcComposer');
+  const dcTyped = document.getElementById('dcTyped');
+  const dcSend = document.getElementById('dcSend');
+  const dcCursor = document.getElementById('dcCursor');
+  const DC_SAY = '저는 채널을 세로로 놓고 기간을 가로로 봐요. 그렇게 정리해야 손에 익어요.';
+  // 표: 첫 줄은 채널, 첫 칸은 날짜. 행·열을 맞바꾸면 채널이 세로, 날짜가 가로로 간다
+  (function buildDcGrid() {
+    const channels = ['Google', 'Meta', 'Naver'];
+    const dates = ['01-01', '01-02', '01-03', '01-04'];
+    for (let r = 0; r <= dates.length; r++) {
+      for (let c = 0; c <= channels.length; c++) {
+        const cell = document.createElement('span');
+        cell.className = 'dc-cell';
+        cell.style.setProperty('--r', r);
+        cell.style.setProperty('--c', c);
+        if (r === 0 && c === 0) cell.classList.add('is-blank');
+        else if (r === 0) { cell.classList.add('is-head'); cell.textContent = channels[c - 1]; }
+        else if (c === 0) { cell.classList.add('is-head'); cell.textContent = dates[r - 1]; }
+        else cell.appendChild(document.createElement('i'));
+        dcGrid.appendChild(cell);
+      }
+    }
+  })();
+  // el의 자리를 장면(.decide) 기준 좌표로 — offsetParent를 따라 올라가며 더한다
+  function dcPt(el, fx, fy) {
+    let x = el.offsetWidth * fx, y = el.offsetHeight * fy;
+    for (let n = el; n && n !== decideEl; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return [x, y];
+  }
+  let dcTypedLen = -1;
+  function renderDecideDemo(p) {
+    const rest = dcPt(dcComposer, 0.72, 1.1); // 타이핑하는 동안 커서가 쉬는 자리(입력창 바로 아래 — 글자를 가리지 않게)
+    const S = dcPt(dcSend, 0.55, 0.6), O = dcPt(dcOk, 0.55, 0.6);
+    const pos = p < 0.6 ? demoMix(rest, S, demoSeg(p, 0.365, 0.425)) : demoMix(S, O, demoSeg(p, 0.8, 0.876));
+    const press = Math.max(0, 1 - Math.abs(p - 0.441) / 0.015, 1 - Math.abs(p - 0.894) / 0.015);
+    dcCursor.style.transform = `translate(${pos[0]}px, ${pos[1]}px) scale(${1 - 0.18 * press})`;
+    dcCursor.classList.toggle('is-on', p > 0.03 && p < 0.97);
+    // 말풍선: 처음 열림 → 보내면 닫힘 → 다시 그린 뒤 다시 열림(내용 B)
+    const second = p >= 0.618;
+    dcBubble.classList.toggle('is-open', (p >= 0.02 && p < 0.45) || second);
+    dcBubble.classList.toggle('is-b', second);
+    dcGrid.classList.toggle('is-transposed', p >= 0.659);
+    const okText = p >= 0.908 ? '결정했어요 ✓' : second ? '네, 그게 낫네요' : '좋아요';
+    if (dcOk.textContent !== okText) dcOk.textContent = okText;
+    dcOk.classList.toggle('is-press', p >= 0.892 && p < 0.908);
+    dcOk.classList.toggle('is-done', p >= 0.908);
+    // 내 말 타이핑 → Send → 보낸 말은 흐려지고 고민 중 → 다시 그린 뒤 빈 입력창
+    const len = p >= 0.618 ? 0 : Math.round(DC_SAY.length * Math.min(1, Math.max(0, (p - 0.1) / 0.241)));
+    if (len !== dcTypedLen) { dcTypedLen = len; dcTyped.textContent = DC_SAY.slice(0, len); }
+    dcSend.classList.toggle('is-press', p >= 0.435 && p < 0.447);
+    dcComposer.classList.toggle('is-sent', p >= 0.447 && p < 0.618);
+    dcComposer.classList.toggle('is-idle', p < 0.1 || p >= 0.618);
+    const thinking = p >= 0.465 && p < 0.618;
+    dcStatus.classList.toggle('is-on', thinking);
+    dcThinking.classList.toggle('is-on', thinking);
+  }
+
+  // ---- 03 장면: 끝나도 함께. ms = 03 칸 안에서 지난 시간 ----
+  //  막대 차오름 → 커서가 「팀 호출하기」 → 프롬프트바로 펼쳐지며 질문 타이핑 → Send
+  //  → 채팅 패널이 열리고 BE가 "쓰는 중" → 답이 줄 순서대로 → 대시보드의 이번 주 Google 행이 강조
+  const handyEl = document.getElementById('handyDemo');
+  const hdRows = handyEl.querySelectorAll('.hd-row');
+  const hdCall = document.getElementById('hdCall');
+  const hdTyped = document.getElementById('hdTyped');
+  const hdSend = document.getElementById('hdSend');
+  const hdChat = document.getElementById('hdChat');
+  const hdMe = document.getElementById('hdMe');
+  const hdBe = document.getElementById('hdBe');
+  const hdFlag = document.getElementById('hdFlag');
+  const hdCursor = document.getElementById('hdCursor');
+  const HD_SAY = 'Google이 4.1에서 3.8로 떨어졌는데 왜 그런지 알 수 있어요?';
+  hdMe.textContent = HD_SAY;
+  // el의 자리를 root 기준 좌표로 — offsetParent를 따라 올라가며 더한다
+  function relPt(el, root, fx, fy) {
+    let x = el.offsetWidth * fx, y = el.offsetHeight * fy;
+    for (let n = el; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return [x, y];
+  }
+  let hdTypedLen = -1;
+  function renderHandyDemo(p) {
+    const ms = p * STEP_MS[2];
+    // 막대: 0.15~1초 동안 0 → 제 길이
+    const grow = demoSeg(ms, 150, 1000);
+    hdRows.forEach((row) => row.style.setProperty('--g', grow.toFixed(3)));
+    // 커서: 대시보드 위에서 쉬다가 → 「팀 호출하기」 → (펼쳐진 뒤) Send
+    const rest = [handyEl.offsetWidth * 0.62, handyEl.offsetHeight * 0.72];
+    const C = relPt(hdCall, handyEl, 0.5, 0.55);
+    const S = [handyEl.offsetWidth - 18 - 8 - 30, handyEl.offsetHeight - 18 - 22]; // 펼쳐진 프롬프트바의 Send 자리(펼침 애니메이션 도중에도 고정)
+    const pos = ms < 1700 ? demoMix(rest, C, demoSeg(ms, 900, 1400)) : demoMix(C, S, demoSeg(ms, 3900, 4300));
+    const press = Math.max(0, 1 - Math.abs(ms - 1550) / 120, 1 - Math.abs(ms - 4450) / 120);
+    hdCursor.style.transform = `translate(${pos[0]}px, ${pos[1]}px) scale(${1 - 0.18 * press})`;
+    hdCursor.classList.toggle('is-on', ms > 300 && ms < 4700);
+    // 알약 → 프롬프트바 → (보내면) 사라지고 채팅 패널
+    hdCall.classList.toggle('is-press', ms >= 1480 && ms < 1620);
+    hdCall.classList.toggle('is-compose', ms >= 1620);
+    hdCall.classList.toggle('is-gone', ms >= 4600);
+    const typed = ms < 2050 ? 0 : Math.min(HD_SAY.length, Math.round(HD_SAY.length * (ms - 2050) / 1700)); // 글자당 약 50ms
+    if (typed !== hdTypedLen) { hdTypedLen = typed; hdTyped.textContent = HD_SAY.slice(0, typed); }
+    hdSend.classList.toggle('is-press', ms >= 4380 && ms < 4520);
+    hdChat.classList.toggle('is-open', ms >= 4600);
+    hdBe.classList.toggle('is-answered', ms >= 6000);
+    hdFlag.classList.toggle('is-flag', ms >= 6300);
+  }
+
+  // 02·03 장면(고정 크기)을 무대에 꽉 차는 최대 배율로 — 폭·높이 중 먼저 닿는 쪽 기준, 1배를 넘지 않는다
+  function fitScenes() {
+    [decideEl, handyEl].forEach((el) => {
+      const pane = el.parentElement;
+      const k = Math.min(1, pane.clientWidth / el.offsetWidth, pane.clientHeight / el.offsetHeight);
+      el.style.setProperty('--scene-scale', k.toFixed(3));
     });
   }
-  window.addEventListener('scroll', updateSteps, { passive: true });
-  window.addEventListener('resize', updateSteps);
-  updateSteps();
+  fitScenes();
+  window.addEventListener('resize', fitScenes);
 
-  // 클릭으로 바로 열기 — 클래스를 직접 토글하면 다음 scroll 이벤트가 덮어쓰므로,
-  // 스크롤 위치(유일한 상태 소스)를 해당 스텝 구간으로 옮겨서 updateSteps가 알아서 반영하게 함
-  stepItems.forEach((item, i) => {
-    item.addEventListener('click', () => {
-      if (MOBILE) return; // 모바일은 핀이 없고 전부 펼쳐져 있음
-      const sectionTop = stepsOuter.getBoundingClientRect().top + window.scrollY;
-      // 구간 경계가 아니라 가운데(i + 0.5)로 보냄 — 브라우저가 스크롤 위치를 소수점에서 반올림해
-      // 경계보다 몇 분의 1px 모자라게 착지하면 floor가 직전 스텝을 집어버림
-      window.scrollTo({ top: sectionTop + (i + 0.5) * STEP_PX, behavior: 'smooth' });
+  function renderScene(i, p) {
+    if (i === 0) renderPickDemo(p);
+    else if (i === 1) renderDecideDemo(p);
+    else renderHandyDemo(p);
+  }
+
+  // t: 0 ~ 칸 수. 정수부가 지금 칸, 소수부가 그 칸의 바
+  function renderSteps(t) {
+    const last = stepItems.length - 1;
+    const active = Math.min(last, Math.floor(t));
+    stepItems.forEach((el, i) => el.style.setProperty('--p', Math.min(1, Math.max(0, t - i)).toFixed(4)));
+    const p = Math.min(1, Math.max(0, t - active));
+    if (active === stepActive) { renderScene(active, p); return; }
+    // 칸이 바뀐 순간: 새 장면을 전환 없이(is-snap) 처음 상태로 맞춘 뒤 보인다
+    const pane = stagePanes[active];
+    pane.classList.add('is-snap');
+    renderScene(active, p);
+    void pane.offsetWidth; // 전환 없는 상태를 확정시킨다
+    pane.classList.remove('is-snap');
+    stepActive = active;
+    stepItems.forEach((el, i) => {
+      el.classList.toggle('is-active', i === active);
+      el.classList.toggle('is-done', i < active);
     });
+    stagePanes.forEach((el, i) => el.classList.toggle('is-active', i === active));
+    stepsSection.dataset.step = active; // 배경 빛 위치·색
+  }
+  // 지난 시간(ms) → t. 한 바퀴(STEP_AT 마지막 값)로 나눈 나머지라 끝나면 저절로 1번부터 다시.
+  // 칸마다 길이가 달라 누적 시작 시각(STEP_AT)으로 지금 칸을 찾는다
+  function stepTick(now) {
+    const ms = Math.max(0, now - stepT0) % STEP_AT[STEP_MS.length]; // rAF 시각이 시작 시각보다 앞설 수 있어 음수 방지
+    let t = 0;
+    for (let i = 0; i < STEP_MS.length; i++) {
+      if (ms < STEP_AT[i + 1]) { t = i + (ms - STEP_AT[i]) / STEP_MS[i]; break; }
+    }
+    renderSteps(t);
+    stepRaf = requestAnimationFrame(stepTick);
+  }
+  function playSteps(from) {
+    cancelAnimationFrame(stepRaf);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { renderSteps(stepItems.length); return; }
+    stepT0 = performance.now() - STEP_AT[from]; // from번 칸 처음부터
+    stepRaf = requestAnimationFrame(stepTick);
+  }
+  renderSteps(0);
+  new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) { stepsOut = true; return; } // 나가도 멈추진 않는다 — 표시만 해 둔다
+    if (e.intersectionRatio >= 0.6 && stepsOut) { stepsOut = false; playSteps(0); }
+  }, { threshold: [0, 0.6] }).observe(stepsList);
+  stepItems.forEach((item, i) => item.addEventListener('click', () => { stepsOut = false; playSteps(i); }));
+
+  // ---- 대결 섹션: 화면에 들어오면 처음부터 재생, 끝 장면에서 멈춘다. 완전히 나갔다 다시 들어오면 다시 ----
+  // 시각표는 HTML의 data-at(나타나는 ms) · data-typing(쓰는 중이 끝나는 ms) · 숫자의 data-from~data-until(올라가는 구간)
+  const duelEl = document.getElementById('duel');
+  const duelIns = Array.from(duelEl.querySelectorAll('.duel-in'), (el) => ({ el, at: Number(el.dataset.at), typing: Number(el.dataset.typing || 0) }));
+  const duelNums = Array.from(duelEl.querySelectorAll('.duel-tile b'), (el) => ({
+    el, to: Number(el.dataset.to), from: Number(el.dataset.from), until: Number(el.dataset.until),
+    bars: el.parentElement.querySelectorAll('.duel-bars i'),
+  }));
+  const duelTileA = document.getElementById('duelTileA');
+  const duelTileB = document.getElementById('duelTileB');
+  const duelPick = document.getElementById('duelPick');
+  const DUEL_PRESS = 6300, DUEL_DECIDE = 6450, DUEL_END = 7700;
+  const duelEase = (t) => 1 - Math.pow(1 - t, 3);
+  let duelRaf = 0, duelT0 = 0, duelOut = true;
+  function renderDuel(ms) {
+    for (const d of duelIns) {
+      d.el.classList.toggle('is-in', ms >= d.at);
+      if (d.typing) d.el.classList.toggle('is-typing', ms < d.typing);
+    }
+    for (const n of duelNums) {
+      const t = duelEase(Math.min(1, Math.max(0, (ms - n.from) / (n.until - n.from))));
+      n.el.textContent = (n.to * t).toFixed(1);
+      n.bars.forEach((bar, i) => bar.style.setProperty('--g', duelEase(Math.min(1, Math.max(0, (ms - n.from - i * 120) / 600))).toFixed(3)));
+    }
+    duelPick.classList.toggle('is-press', ms >= DUEL_PRESS && ms < DUEL_DECIDE);
+    const decided = ms >= DUEL_DECIDE;
+    duelTileB.classList.toggle('is-chosen', decided);
+    duelTileA.classList.toggle('is-dim', decided);
+    duelEl.classList.toggle('is-decided', decided);
+  }
+  function duelTick(now) {
+    const ms = now - duelT0;
+    renderDuel(ms);
+    duelRaf = ms < DUEL_END ? requestAnimationFrame(duelTick) : 0;
+  }
+  renderDuel(0);
+  new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) { duelOut = true; return; }
+    if (e.intersectionRatio < 0.4 || !duelOut) return;
+    duelOut = false;
+    cancelAnimationFrame(duelRaf);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { renderDuel(DUEL_END); return; }
+    duelT0 = performance.now();
+    duelRaf = requestAnimationFrame(duelTick);
+  }, { threshold: [0, 0.4] }).observe(duelEl);
+
+  // ---- 요금: 플랜 줄이 화면에 들어오면 가격이 0에서 제 값까지 차르륵 올라간다(Starter → Pro 순서로 0.12초 차).
+  // 숫자 폭이 늘어나며 옆 "/월"이 밀리지 않게 시작 전에 최종 폭을 잡아 둔다. 한 번만 ----
+  const priceEls = document.querySelectorAll('.plan-price b[data-count]');
+  const PRICE_MS = 1100;
+  const priceEase = (t) => 1 - Math.pow(1 - t, 3);
+  if (priceEls.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    priceEls.forEach((el) => { el.style.display = 'inline-block'; el.style.minWidth = `${el.offsetWidth}px`; el.textContent = '₩0'; });
+    const priceIO = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      priceIO.disconnect();
+      const t0 = performance.now();
+      (function tick(now) {
+        let running = false;
+        priceEls.forEach((el, i) => {
+          const t = Math.min(1, Math.max(0, (now - t0 - i * 120) / PRICE_MS));
+          if (t < 1) running = true;
+          const v = Math.round(Number(el.dataset.count) * priceEase(t) / 100) * 100; // 100원 단위로 올라간다
+          el.textContent = `₩${v.toLocaleString('ko-KR')}`;
+        });
+        if (running) requestAnimationFrame(tick);
+      })(t0);
+    }, { threshold: 0.2 }); // 폰에선 플랜이 세로로 길게 쌓여 절반이 한 화면에 안 들어온다
+    priceIO.observe(document.querySelector('.pricing-row'));
+  }
+
+  // ---- 스토리 섹션 번역 와이프: 고정된 동안 스크롤한 만큼 핸들이 왼쪽 → 오른쪽으로 지나간다(--hx 0% → 100%) ----
+  // · 손에 붙은 움직임이라 가운데 구간은 스크롤과 1:1. 양 끝만 살짝 부드럽게 출발·도착(TW_SOFT)
+  // · 앞 멈춤은 짧게(들어오자마자 첫 스크롤에 반응), 뒤 멈춤은 길게(번역 후를 읽을 틈)
+  // · 스크롤이 뚝뚝 끊겨도 부드럽게 따라가되, 화면 주사율(60/120Hz)과 상관없이 같은 느낌이 나도록 시간 기준으로 감쇠(TW_TAU)
+  // · 빨리 밀면 손잡이가 세로로 살짝 늘어난다(속도 피드백). 다 지나가면 사라진다
+  const storySection = document.getElementById('storySection');
+  const twStage = document.getElementById('twStage');
+  const TW_TRAVEL_PX = MOBILE ? 1200 : 1600; // CSS .story-section 높이와 짝
+  const TW_HOLD_IN = 0.05, TW_HOLD_OUT = 0.2; // 앞·뒤 멈춤 구간(진행률)
+  const TW_SOFT = 0.35; // 양 끝을 부드럽게 하는 정도(0 = 완전 1:1, 1 = 완전 ease-in-out)
+  const TW_TAU = 90;    // 감쇠 시간 상수(ms) — 클수록 더 느긋하게 따라간다
+  const twReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let twCur = 0, twRaf = 0, twLast = 0, twStretch = 0;
+  function twTarget() {
+    const p = Math.min(1, Math.max(0, -storySection.getBoundingClientRect().top / TW_TRAVEL_PX));
+    const t = Math.min(1, Math.max(0, (p - TW_HOLD_IN) / (1 - TW_HOLD_IN - TW_HOLD_OUT)));
+    const smooth = t * t * (3 - 2 * t);
+    return t + (smooth - t) * TW_SOFT;
+  }
+  function twFrame(now) {
+    const dt = twLast ? Math.min(64, now - twLast) : 16;
+    twLast = now;
+    const target = twTarget();
+    const prev = twCur;
+    twCur = twReduce ? target : twCur + (target - twCur) * (1 - Math.exp(-dt / TW_TAU));
+    if (Math.abs(target - twCur) < 0.0005) twCur = target;
+    // 속도(진행률/ms) → 손잡이 늘어남 0~1, 멈추면 서서히 돌아온다
+    const speed = Math.abs(twCur - prev) / dt;
+    twStretch += (Math.min(1, speed * 900) - twStretch) * (1 - Math.exp(-dt / 120));
+    if (twReduce) twStretch = 0;
+    twStage.style.setProperty('--hx', `${(twCur * 100).toFixed(2)}%`);
+    twStage.style.setProperty('--tw-stretch', twStretch.toFixed(3));
+    twStage.classList.toggle('is-done', twCur === 1);
+    const settling = twCur !== target || twStretch > 0.01;
+    twRaf = settling ? requestAnimationFrame(twFrame) : 0;
+    if (!settling) twLast = 0;
+  }
+  window.addEventListener('scroll', () => { if (!twRaf && !isHeroLocked()) twRaf = requestAnimationFrame(twFrame); }, { passive: true });
+  requestAnimationFrame(twFrame);
+
+  // 두 장의 짝(제목 ↔ 제목, 본문 n번째 문단 ↔ n번째 문단)을 같은 높이로 맞춘다 — 번역 전·후의 줄 수가 달라
+  // 덩어리 높이가 다르면 시작선이 어긋나 경계에서 글이 위아래로 엇갈려 보인다. 폭이 바뀌면 줄바꿈이 달라지니 다시 맞춘다
+  const twPairs = (() => {
+    const [beforeL, afterL] = twStage.querySelectorAll('.tw-layer');
+    const pick = (layer) => [layer.querySelector('.tw-title'), ...layer.querySelectorAll('.tw-body p')];
+    const b = pick(beforeL), a = pick(afterL);
+    return b.map((el, i) => [el, a[i]]);
+  })();
+  function syncTwHeights() {
+    twPairs.forEach(([a, b]) => { a.style.minHeight = ''; b.style.minHeight = ''; });
+    twPairs.forEach(([a, b]) => {
+      const h = `${Math.max(a.offsetHeight, b.offsetHeight)}px`;
+      a.style.minHeight = h;
+      b.style.minHeight = h;
+    });
+  }
+  syncTwHeights();
+  if (document.fonts) document.fonts.ready.then(syncTwHeights); // 웹폰트가 늦게 오면 줄바꿈이 달라진다
+  let twResizeRaf = 0;
+  window.addEventListener('resize', () => { cancelAnimationFrame(twResizeRaf); twResizeRaf = requestAnimationFrame(syncTwHeights); });
+
+  // ---- FAQ 채팅: 추천 칩을 누르면 → 칩은 사라지고 내 말풍선이 대화창 맨 아래에 떠오르고 → 핸드오프가 "쓰는 중" → 답.
+  // 대화는 쌓이며 대화창 안에서만 아래로 스크롤된다(채팅 창·섹션 크기는 그대로). 한 번에 하나씩(진행 중엔 다른 칩을 막는다) ----
+  const FAQ_TYPING_MS = 700;
+  const faqThread = document.getElementById('faqThread');
+  const faqChipsEl = document.getElementById('faqChips');
+  const faqReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let faqBusy = false;
+  // 채팅 창 전체 높이를 처음 크기로 고정하고, 대화창이 남는 공간을 가져가게 한다 —
+  // 칩이 줄어도 창(섹션) 크기는 그대로, 빈 공간 없이 대화창만 늘어난다
+  const faqChat = faqThread.closest('.faq-chat');
+  let faqAsked = false;
+  function lockFaqChat() {
+    if (faqAsked) return; // 질문을 시작한 뒤엔 다시 재지 않는다(칩 수가 달라져 높이가 달라지므로)
+    faqChat.style.height = '';
+    faqThread.classList.remove('is-flex');
+    faqChat.style.height = `${faqChat.offsetHeight}px`;
+    faqThread.classList.add('is-flex');
+  }
+  lockFaqChat();
+  if (document.fonts) document.fonts.ready.then(lockFaqChat);
+  window.addEventListener('resize', lockFaqChat);
+  // 칩 영역이 줄어들 때 그 높이 변화를 부드럽게(대화창은 flex라 같이 늘어난다)
+  function faqEaseChipsHeight(fromH) {
+    const toH = faqChipsEl.offsetHeight;
+    if (faqReduce || fromH === toH) return;
+    faqChipsEl.animate([{ height: `${fromH}px` }, { height: `${toH}px` }], { duration: 360, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+  }
+  const faqWait = (ms) => new Promise((r) => setTimeout(r, ms));
+  function faqScrollEnd(smooth) { faqThread.scrollTo({ top: faqThread.scrollHeight, behavior: smooth && !faqReduce ? 'smooth' : 'auto' }); }
+  // 나머지 칩들을 원래 자리 → 새 자리로 미끄러지게(FLIP). 칩 하나가 빠진 직후 부른다
+  function faqSlideChips(before) {
+    if (faqReduce) return;
+    faqChipsEl.querySelectorAll('.faq-chip').forEach((c) => {
+      const old = before.get(c);
+      if (!old) return;
+      const now = c.getBoundingClientRect();
+      const dx = old.left - now.left, dy = old.top - now.top;
+      if (dx || dy) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+    });
+  }
+  // 대화창 맨 아래에 새 말풍선을 떠오르게 붙인다(메신저 문법: 아래에서 살짝 떠오르며 나타남)
+  function faqPush(el) {
+    faqThread.appendChild(el);
+    if (!faqReduce) el.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+    faqScrollEnd(true);
+  }
+  async function faqAsk(chip) {
+    if (faqBusy) return;
+    faqBusy = true;
+    faqAsked = true;
+    // 1) 칩은 그 자리에서 짧게 줄어들며 사라지고, 나머지 칩이 빈자리를 메운다(줄 수가 줄면 영역도 줄어든다)
+    if (!faqReduce) await chip.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.9)' }], { duration: 150, easing: 'ease-in', fill: 'forwards' }).finished;
+    const before = new Map([...faqChipsEl.querySelectorAll('.faq-chip')].map((c) => [c, c.getBoundingClientRect()]));
+    const hadFocus = document.activeElement === chip;
+    const chipsH = faqChipsEl.offsetHeight;
+    // 마지막 칩이면 지우지 않고 투명하게 자리만 남겨 둔다 — 안내 문구는 답이 끝난 뒤에 그 자리로 갈아 끼운다
+    // (바로 지우면 칩 영역이 비었다가 문구로 다시 커져 두 번 움직인다)
+    const isLast = faqChipsEl.querySelectorAll('.faq-chip').length === 1;
+    if (isLast) {
+      chip.style.visibility = 'hidden';
+      chip.disabled = true;
+    } else {
+      chip.remove();
+      faqSlideChips(before);
+      faqEaseChipsHeight(chipsH);
+    }
+    if (hadFocus) faqChipsEl.querySelector('.faq-chip')?.focus({ preventScroll: true }); // 키보드로 눌렀으면 다음 칩으로 초점을 넘긴다
+    // 2) 내 말풍선이 대화창 맨 아래에 떠오른다
+    const me = document.createElement('p');
+    me.className = 'faq-me';
+    me.textContent = chip.textContent;
+    faqPush(me);
+    // 3) 핸드오프 "쓰는 중" → 같은 자리에 답 말풍선이 새로 떠오른다(점 말풍선을 늘리지 않고 갈아 끼운다)
+    if (!faqReduce) await faqWait(260);
+    const ai = document.createElement('div');
+    ai.className = 'faq-ai';
+    ai.innerHTML = '<span class="faq-avatar"></span><div><p class="faq-who">Handoff</p><p class="faq-bubble is-typing"></p></div>';
+    faqPush(ai);
+    if (!faqReduce) await faqWait(FAQ_TYPING_MS);
+    const dots = ai.querySelector('.faq-bubble');
+    const answer = document.createElement('p');
+    answer.className = 'faq-bubble';
+    answer.textContent = chip.dataset.a;
+    dots.replaceWith(answer);
+    if (!faqReduce) answer.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+    faqScrollEnd(true);
+    // 4) 마지막 질문의 답까지 끝났으면, 남겨 둔 칩 자리를 안내 한 줄로 갈아 끼운다(영역 높이는 한 번만 부드럽게)
+    if (isLast) {
+      const fromH = faqChipsEl.offsetHeight;
+      const done = document.createElement('p');
+      done.className = 'faq-chips-done';
+      done.textContent = '다 물어보셨어요. 더 궁금한 건 출시 후 핸드오프에게 바로 물어보세요.';
+      chip.replaceWith(done);
+      faqEaseChipsHeight(fromH);
+      if (!faqReduce) done.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 150, easing: 'ease-out', fill: 'backwards' });
+    }
+    faqBusy = false;
+  }
+  faqChipsEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.faq-chip');
+    if (chip) faqAsk(chip);
   });
+
+  // ---- 비전 섹션: 들어오면 어둠이 걷히며 방이 밝아지고(.is-lit), 입력칸 안내 문구가 히어로 입력창처럼 한 글자씩 써진다.
+  // 화면 밖으로 완전히 나가면 처음으로 돌려 두었다가 다시 들어오면 또 ----
+  const visionSection = document.getElementById('visionSection');
+  const visionEmail = document.getElementById('waitlistEmail');
+  const VISION_PLACEHOLDER = '출시되면 알려 드릴 이메일 주소';
+  const VISION_TYPE_MS = 55; // 히어로 타이핑과 같은 박자
+  let visionTypeTimer = 0;
+  let visionPlayed = false;
+  function typeVisionPlaceholder() {
+    clearInterval(visionTypeTimer);
+    let n = 0;
+    visionEmail.placeholder = '';
+    visionTypeTimer = setInterval(() => {
+      n++;
+      visionEmail.placeholder = VISION_PLACEHOLDER.slice(0, n);
+      if (n >= VISION_PLACEHOLDER.length) clearInterval(visionTypeTimer);
+    }, VISION_TYPE_MS);
+  }
+  new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) {
+      if (!visionPlayed) return;
+      visionPlayed = false;
+      visionSection.classList.remove('is-lit');
+      return;
+    }
+    if (e.intersectionRatio < 0.4 || visionPlayed) return;
+    visionPlayed = true;
+    visionSection.classList.add('is-lit');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { visionEmail.placeholder = VISION_PLACEHOLDER; return; }
+    typeVisionPlaceholder();
+  }, { threshold: [0, 0.4] }).observe(visionSection);
 
   // ---- 출시 알림 신청 → 구글 시트 ----
   // 구글 Apps Script 웹 앱 배포 URL. 배포 방법은 apps-script/waitlist.gs 맨 위 주석
@@ -1598,25 +2572,27 @@
     heroState = 'end';
     setScrollLock(false);
     // 보내면 바로 아래 섹션으로 — 「보냈더니 일이 시작된다」로 이어지게
-    const next = document.querySelector('.story-section');
+    const next = document.querySelector('.steps-section');
     if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
   }
 
   // 정해진 시간 동안 천천히 출발해 천천히 멈추는 스크롤. 도중에 유저가 휠·터치를 하면 그 자리에서 멈춘다
   let autoScrollId = 0;
+  let autoScrolling = false; // GNB가 참조 — 자동 스크롤 한 번은 "한 동작"이라 그 사이엔 GNB를 숨겼다 다시 띄우지 않는다
   function scrollToY(to, ms) {
     const from = window.scrollY;
     const t0 = performance.now();
     const id = ++autoScrollId;
-    const stop = () => { autoScrollId++; };
+    const stop = () => { autoScrollId++; autoScrolling = false; };
     window.addEventListener('wheel', stop, { once: true, passive: true });
     window.addEventListener('touchstart', stop, { once: true, passive: true });
+    autoScrolling = true;
     (function step(now) {
       if (id !== autoScrollId) return;
       const t = clamp01((now - t0) / ms);
       window.scrollTo(0, lerp(from, to, easeInOut(t)));
       if (t < 1) requestAnimationFrame(step);
-      else { window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); }
+      else { autoScrolling = false; window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); }
     })(t0);
   }
   async function rewindHeroIntro() {
@@ -1636,7 +2612,7 @@
   function goHeroNext() {
     if (heroState === 'start') { playHeroIntro(); return; }
     if (isHeroLocked()) return; // 재생 중엔 한 번 더 눌러도 끼어들지 않는다
-    const next = document.querySelector('.story-section');
+    const next = document.querySelector('.steps-section');
     if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
   }
   document.getElementById('heroDown').addEventListener('click', goHeroNext);
@@ -1762,10 +2738,26 @@
     gnb.style.pointerEvents = visible ? 'auto' : 'none';
   }
 
+  // 스텝 섹션 시작점: 섹션 윗변이 GNB 높이 안으로 들어와 화면 맨 위에 닿기까지.
+  // 히어로에서 자동 스크롤로 내려올 땐 GNB가 처음부터 끝까지 보인 채(색만 바뀜) 도착하고,
+  // 직접 스크롤로 왔으면 시작점에서 멈췄을 때 보인다. 시작점을 벗어나면 다른 곳과 똑같이 스크롤 방향대로 숨는다
+  function atStepsStart() {
+    const top = stepsSection.getBoundingClientRect().top;
+    return top <= gnb.offsetHeight && top >= -2; // -2: 스크롤 위치 소수점 반올림 여유
+  }
+
+  const GNB_SETTLE_MS = 90; // 이만큼 스크롤 이벤트가 없으면 멈춘 것
+  let gnbSettleTimer = 0;
+  function showGnbIfAtStepsStart() { if (atStepsStart()) setGnbVisible(true); }
+
   function onScroll() {
     const y = window.scrollY;
     const delta = y - lastScrollY;
-    if (y < 10) {
+    clearTimeout(gnbSettleTimer);
+    gnbSettleTimer = setTimeout(showGnbIfAtStepsStart, GNB_SETTLE_MS);
+    if (autoScrolling) {
+      setGnbVisible(true);
+    } else if (y < 10) {
       setGnbVisible(true);
     } else if (delta > 0) {
       setGnbVisible(false); // 아래로 스크롤 = 지연 없이 바로 숨김
@@ -1800,6 +2792,13 @@
   if (!MOBILE) {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+  } else {
+    // 폰은 숨김을 touchmove가 맡는다 — 자동 스크롤 중 계속 보이기와 스텝 섹션 시작점에서 멈췄을 때 보이기만 여기서
+    window.addEventListener('scroll', () => {
+      if (autoScrolling) setGnbVisible(true);
+      clearTimeout(gnbSettleTimer);
+      gnbSettleTimer = setTimeout(showGnbIfAtStepsStart, GNB_SETTLE_MS);
+    }, { passive: true });
   }
 </script>
 
