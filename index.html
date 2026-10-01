@@ -362,13 +362,13 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     height: 100%;
-    padding: 0 8px;
+    padding: 0 6px;
     border-radius: 28px;
-    /* 글자가 놓이는 안쪽 칸은 어두운 남색 유리 — 뒤 빛기둥이 가장 밝을 때도 흰 글자 대비 4.5:1 이상 */
-    background: rgba(4, 10, 32, 0.55);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    /* 라이트모드 화이트 톤(기존과 동일) — 바깥 유리가 더 투명해져도 안은 항상 또렷하게 읽힌다 */
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.05), 0 1px 2px rgba(17, 24, 39, 0.04);
     opacity: 0;
     text-align: left;
   }
@@ -376,20 +376,20 @@
     flex: none;
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
-    color: rgba(255, 255, 255, 0.7);
+    width: 34px;
+    height: 34px;
+    color: rgba(17, 24, 39, 0.5);
   }
   .hero-composer-text {
     flex: 1;
     min-width: 0;
     overflow: hidden;          /* 넘치면 JS가 끝으로 밀어 방금 쓴 글자가 보이게 한다(실제 입력창처럼) */
     white-space: nowrap;
-    color: #fff;
+    color: #111827;
     font-size: 16px;
     line-height: 24px;
   }
-  .hero-composer-text[data-empty="true"] { color: rgba(255, 255, 255, 0.55); }
+  .hero-composer-text[data-empty="true"] { color: #9ca3af; }
   /* 문장이 칸보다 길어 앞부분이 밀려나면, 잘린 글자가 보이지 않게 왼쪽 끝을 흐린다 */
   .hero-composer-text.is-overflow {
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 28px);
@@ -399,8 +399,8 @@
     flex: none;
     display: grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: #0158FD;
     color: #fff;
@@ -418,7 +418,7 @@
     height: 1.05em;
     margin-left: 1px;
     vertical-align: -0.15em;
-    background: #9dbbff;
+    background: #0158FD;
     animation: caret-blink 1s steps(1) infinite;
   }
   @keyframes caret-blink { 50% { opacity: 0; } }
@@ -863,7 +863,9 @@
     .step-title { color: #111827; font-size: 20px; cursor: default; }
     .step-desc-wrap { grid-template-rows: 1fr; opacity: 1; }
     .step-item { padding: 28px 0; }
-    .story-section { padding: 64px 0; }
+    /* 상단 패딩이 GNB 높이(84px)보다 작으면, 이 섹션으로 자동 스크롤됐을 때(히어로 CTA·↓ 버튼)
+       고정 GNB가 제목 윗줄을 가린다 — GNB 높이보다 여유 있게 잡는다 */
+    .story-section { padding: 96px 0; }
     .pricing-section { padding: 64px 0; }
     .pricing-row { display: block; margin-top: 40px; }
     .plan:not(:last-child) { margin-bottom: 20px; }
@@ -874,8 +876,8 @@
     .vision-section { padding: 96px 0; }
     /* 폰: 입력칸·버튼을 위아래로. 둘 다 터치 영역 52px 이상, 입력칸은 안쪽 위아래 여백을 넉넉히 */
     .waitlist-field { flex-direction: column; gap: 8px; padding: 8px; border-radius: 28px; }
-    .waitlist-field input[type="email"] { flex: none; height: 56px; padding: 0 20px; }
-    .waitlist-btn { height: 52px; }
+    .waitlist-field input[type="email"] { flex: none; height: 48px; padding: 0 20px; }
+    .waitlist-btn { height: 48px; }
     .footer { padding: 64px 0; }
     /* col- 클래스가 아니라 grid-column 직접 지정이라 개별 해제가 필요함 — 안 풀면 좌우로
        1컬럼씩 들여쓰인 채 폰 화면에서 본문이 과하게 좁아짐 */
@@ -904,7 +906,7 @@
     </div>
     <div class="gnb-links col-6">
       <a href="#" class="gnb-btn gnb-btn--ghost js-gnb-action" data-toast="준비중입니다">About Us</a>
-      <a href="#waitlist" class="gnb-btn gnb-btn--solid js-gnb-action" data-waitlist>Start</a>
+      <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Start</a>
     </div>
   </nav>
 
@@ -921,7 +923,7 @@
         <p class="hero-desc">어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?<br>AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.</p>
         <!-- 보여 주기만 하는 입력창 — 누르면 출시 알림 칸으로 간다(출시 전이라 실제 입력은 받지 않는다) -->
         <div class="hero-composer-slot">
-        <a href="#waitlist" class="hero-composer js-gnb-action" id="heroComposer" data-waitlist data-cta-location="hero">
+        <a href="#" class="hero-composer" id="heroComposer">
           <span class="hero-morph-cta" id="heroMorphCta">나만의 툴을 만들어보세요<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></span>
           <span class="hero-composer-inner" id="heroComposerInner" aria-hidden="true">
             <span class="hero-composer-icon"><svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></span>
@@ -1049,7 +1051,7 @@
         <div class="plan">
           <p class="plan-name">Free</p>
           <p class="plan-price"><b>₩0</b></p>
-          <a href="#waitlist" class="plan-cta js-gnb-action" data-waitlist>무료로 시작하기</a>
+          <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">무료로 시작하기</a>
           <p class="plan-incl">Free에 포함된 기능</p>
           <ul class="plan-list">
             <li>내 말로 대화하는 프로젝트 1개</li>
@@ -1061,7 +1063,7 @@
         <div class="plan plan--featured">
           <p class="plan-name">Starter</p>
           <p class="plan-price"><b>₩29,000</b><span>/월</span></p>
-          <a href="#waitlist" class="plan-cta plan-cta--solid js-gnb-action" data-waitlist>시작하기</a>
+          <a href="#" class="plan-cta plan-cta--solid js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Free의 모든 기능과 함께…</p>
           <ul class="plan-list">
             <li>프로젝트 개수 제한 없이 만들기</li>
@@ -1074,7 +1076,7 @@
         <div class="plan">
           <p class="plan-name">Pro</p>
           <p class="plan-price"><b>₩59,000</b><span>/월</span></p>
-          <a href="#waitlist" class="plan-cta js-gnb-action" data-waitlist>시작하기</a>
+          <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Starter의 모든 기능과 함께…</p>
           <ul class="plan-list">
             <li>한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배</li>
@@ -1432,12 +1434,12 @@
     const maxW = Math.max(256, Math.min(672, avail));
     composer.style.width = lerp(256, maxW, e) + 'px';
     composer.style.height = lerp(56, 74, e) + 'px';
-    composer.style.padding = lerp(0, 8, e) + 'px';
+    composer.style.padding = lerp(0, 4, e) + 'px'; // 바깥 유리 프레임 두께(얇게)
     composer.style.borderRadius = lerp(28, 36, e) + 'px';
     // 파랑(1, 88, 253) → 흰색
     // 파랑(불투명) → 리퀴드 글래스(흰색 14% + 뒤 흐림)
-    composer.style.backgroundColor = `rgba(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))}, ${lerp(1, 0.14, e).toFixed(3)})`;
-    composer.style.borderColor = `rgba(255, 255, 255, ${(0.32 * e).toFixed(3)})`;
+    composer.style.backgroundColor = `rgba(${Math.round(lerp(1, 255, e))}, ${Math.round(lerp(88, 255, e))}, ${Math.round(lerp(253, 255, e))}, ${lerp(1, 0.08, e).toFixed(3)})`;
+    composer.style.borderColor = `rgba(255, 255, 255, ${(0.18 * e).toFixed(3)})`;
     composer.style.setProperty('--e', e.toFixed(3));
     morphCta.style.opacity = 1 - clamp01(p / 0.35);
     composerInner.style.opacity = clamp01((p - 0.45) / 0.45);
@@ -1541,10 +1543,20 @@
   }
 
   // 아래로 버튼 — 재생 전이면 재생(끝나면 알아서 다음 섹션으로), 이미 봤으면 바로 다음 섹션으로
-  document.getElementById('heroDown').addEventListener('click', () => {
+  function goHeroNext() {
     if (heroState === 'start') { playHeroIntro(); return; }
+    if (isHeroLocked()) return; // 재생 중엔 한 번 더 눌러도 끼어들지 않는다
     const next = document.querySelector('.story-section');
     if (next) scrollToY(next.getBoundingClientRect().top + window.scrollY, NEXT_SCROLL_MS);
+  }
+  document.getElementById('heroDown').addEventListener('click', goHeroNext);
+  // 히어로 CTA(알약→입력창) 클릭도 같은 입구 — 토스트/출시알림 공용 핸들러를 타지 않고 직접 재생을 건다
+  composer.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof gtag === 'function') {
+      gtag('event', 'cta_click', { cta_label: morphCta.textContent.trim(), cta_location: 'hero' });
+    }
+    goHeroNext();
   });
 
   // ---- 공기 중 먼지: 천천히 떠오르고 깜빡인다. 빛기둥 안에 있는 입자가 더 밝다 ----
