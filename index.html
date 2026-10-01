@@ -1360,13 +1360,14 @@
     .tw-word { font-size: calc(var(--fs, calc(13px + var(--d) * 34px)) * 0.7); }
     .tw-word:nth-of-type(even) { display: none; } /* 폭이 좁아 반만 */
     /* 요금: 한 화면 안에 — 플랜 카드는 옆으로 밀어 넘기는 가로 캐러셀(다음 카드가 살짝 보여 넘길 수 있다는 걸 알린다).
-       처음엔 추천 플랜(Starter)이 가운데(JS) */
+       처음엔 추천 플랜(Starter)부터(JS) */
     .pricing-section { padding: 92px 0 20px; }
     .pricing-head .qa-title { font-size: 24px; }
     .pricing-head .qa-desc { font-size: 14px; }
     .pricing-head .qa-desc br { display: none; }
     .pricing-row {
       display: flex;
+      justify-content: flex-start; /* 데스크톱의 center가 남으면 카드가 양쪽으로 넘쳐 첫 카드 왼쪽은 스크롤로도 닿지 않는다 */
       gap: 12px;
       margin: 24px calc(-1 * var(--page-margin)) 0;
       padding: 0 var(--page-margin);
@@ -1380,7 +1381,9 @@
     }
     .pricing-row::-webkit-scrollbar { display: none; }
     .plan--featured::before { display: none; } /* 추천 플랜 뒤 빛은 위아래로 번져 카드 줄을 세로로 넘치게 해서 폰에선 뺀다 */
-    .plan { flex: 0 0 84%; gap: 14px; padding: 24px 20px; scroll-snap-align: center; }
+    /* 카드 폭은 정수 px(화면 − 양옆 여백 20 − 다음 카드 엿보기 28), 맞춤 기준은 카드 왼쪽 끝 —
+       %폭에 가운데 맞춤이면 맞출 자리가 소수점이 돼, 폰에서 세로 스크롤 중 주소창이 들락날락할 때마다 좌우로 떨렸다 */
+    .plan { flex: 0 0 calc(100vw - 68px); gap: 14px; padding: 24px 20px; scroll-snap-align: start; }
     .plan-price b { font-size: 34px; }
     .plan-list { gap: 9px; }
     .plan-list li { font-size: 14px; }
@@ -2217,8 +2220,8 @@
   if (MOBILE) {
     const row = document.querySelector('.pricing-row');
     const featured = row.querySelector('.plan--featured');
-    // offsetLeft는 줄(row) 기준이 아니라서 화면 좌표 차이로 잰다
-    if (featured) row.scrollLeft += featured.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - featured.offsetWidth) / 2;
+    // 카드 왼쪽 끝을 줄 왼쪽 여백(스냅 기준선)에 맞춘다 — offsetLeft는 줄 기준이 아니라 화면 좌표 차이로 잰다
+    if (featured) row.scrollLeft = Math.round(row.scrollLeft + featured.getBoundingClientRect().left - row.getBoundingClientRect().left - parseFloat(getComputedStyle(row).paddingLeft));
   }
 
   // ---- 요금: 플랜 줄이 화면에 들어오면 가격이 0에서 제 값까지 차르륵 올라간다(Starter → Pro 순서로 0.12초 차).
