@@ -1370,11 +1370,15 @@
       margin: 24px calc(-1 * var(--page-margin)) 0;
       padding: 0 var(--page-margin);
       overflow-x: auto;
+      overflow-y: hidden; /* 가로만 — overflow-x: auto만 주면 세로도 스크롤 가능해져, 폰에서 카드 줄이 위아래로 끌려 깨진다 */
+      overscroll-behavior-x: contain;
+      align-items: stretch; /* 카드 높이를 같게 */
       scroll-snap-type: x mandatory;
       scroll-padding: 0 var(--page-margin);
       scrollbar-width: none;
     }
     .pricing-row::-webkit-scrollbar { display: none; }
+    .plan--featured::before { display: none; } /* 추천 플랜 뒤 빛은 위아래로 번져 카드 줄을 세로로 넘치게 해서 폰에선 뺀다 */
     .plan { flex: 0 0 84%; gap: 14px; padding: 24px 20px; scroll-snap-align: center; }
     .plan-price b { font-size: 34px; }
     .plan-list { gap: 9px; }
