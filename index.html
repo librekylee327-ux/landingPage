@@ -204,10 +204,19 @@
     /* 내용 폭 최대 1120px — 바(블러 배경)는 화면 전체 폭, 좌우 여백만 넓어진다 */
     padding: 20px max(var(--page-margin), calc((100% - 1120px) / 2));
     background: transparent;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     z-index: 20;
     transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  /* 바 뒤 블러는 GNB 자신이 아니라 뒤판(::before)에 건다 — GNB에 직접 걸면 그 안의 언어 목록(유리)이
+     페이지가 아니라 GNB만 비춰 흐림이 안 먹는다 */
+  .gnb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
   }
   .gnb-logo { display: flex; align-items: center; gap: 8px; justify-self: start; }
   .gnb-logo img:first-child { width: 16px; height: 24px; }
@@ -241,10 +250,74 @@
   .gnb.is-on-hero .gnb-btn--solid { background: #fff; color: #111827; }
   .gnb.is-on-hero .gnb-btn--solid:hover { background: #e5e7eb; }
   /* 처음 랜딩(맨 위)에서는 GNB 뒤를 흐리게·어둡게 하지 않는다 — 천장 조명이 그대로 보이게 */
-  .gnb.is-at-top { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .gnb.is-at-top { background: transparent !important; }
+  .gnb.is-at-top::before { backdrop-filter: none; -webkit-backdrop-filter: none; }
   /* 히어로 위에서는 배경 블러 없이 — 어두운 방 화면이 GNB 뒤로 그대로 보이게 */
-  .gnb.is-on-hero { background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .gnb.is-on-hero { background: transparent !important; }
+  .gnb.is-on-hero::before { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .gnb-logo { cursor: pointer; }
+
+  /* ---- 언어 선택: KO ▾ 버튼 + 아래로 열리는 목록(토스트와 같은 리퀴드 글래스) ---- */
+  .gnb-lang { position: relative; }
+  .gnb-lang-btn { gap: 4px; padding: 10px 20px 10px 24px; background: none; border: none; font-family: inherit; }
+  .gnb-lang-caret { transition: transform 0.2s ease; }
+  .gnb-lang.is-open .gnb-lang-caret { transform: rotate(180deg); }
+  .gnb-lang-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 168px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.35);
+    border: 0.5px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+    transform-origin: top right;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out, visibility 0s linear 0.16s;
+  }
+  .gnb-lang.is-open .gnb-lang-menu {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    visibility: visible;
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out, visibility 0s;
+  }
+  .gnb-lang-opt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(17, 24, 39, 0.6);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  /* 고른 언어는 굵기 대신 옅은 알약 배경 + 체크로 표시한다 */
+  .gnb-lang-check { opacity: 0; flex-shrink: 0; }
+  .gnb-lang-opt:hover, .gnb-lang-opt:focus-visible { background: rgba(255, 255, 255, 0.35); color: #111827; outline: none; }
+  .gnb-lang-opt[aria-checked="true"] { background: rgba(255, 255, 255, 0.55); color: #111827; }
+  .gnb-lang-opt[aria-checked="true"] .gnb-lang-check { opacity: 1; }
+  /* 어두운 히어로 위: 유리가 회색으로 비쳐 검은 글자가 탁해진다 — 어두운 유리 + 흰 글자로 */
+  .gnb.is-on-hero .gnb-lang-menu { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0.5px 0 rgba(255, 255, 255, 0.25); }
+  .gnb.is-on-hero .gnb-lang-opt { color: rgba(255, 255, 255, 0.65); }
+  .gnb.is-on-hero .gnb-lang-opt:hover, .gnb.is-on-hero .gnb-lang-opt:focus-visible { background: rgba(255, 255, 255, 0.08); color: #fff; }
+  .gnb.is-on-hero .gnb-lang-opt[aria-checked="true"] { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
   /* ---- 토스트: 리퀴드 글래스 ---- */
   .toast {
@@ -1076,6 +1149,9 @@
     letter-spacing: 0.2px;
   }
   .pricing-addon b { color: #111827; font-weight: 600; margin-right: 6px; }
+  .pricing-vat { display: block; margin-top: 6px; color: #9ca3af; font-size: 0.9em; }
+  /* 한 언어에서만 보여 줄 것(예: 달러 가격의 부가세 별도 안내) */
+  html:not([lang="en"]) [data-lang-only="en"] { display: none; }
   /* 3열이 250px 아래로 좁아지면 가격(40px)이 카드 폭을 넘는다 — 태블릿 폭에선 한 줄에 한 장 */
   @media (min-width: 769px) and (max-width: 1100px) {
     .pricing-row { grid-template-columns: minmax(0, 420px); }
@@ -1277,6 +1353,7 @@
     .gnb { display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.72); }
     .gnb-btn { padding: 8px 16px; font-size: 13px; }
     .gnb-links { gap: 4px; }
+    .gnb-lang-btn { padding: 8px 10px 8px 14px; }
     .gnb-logo img:first-child { width: 13px; height: 20px; }
     .gnb-logo img:last-child { width: 54px; height: 10px; }
     .hero-title-main { font-size: 36px; } /* 72px면 폰 폭(390px)에서 한 줄이 넘친다 */
@@ -1462,7 +1539,17 @@
       <img src="assets/nav/handoff-wordmark.svg" alt="Handoff">
     </div>
     <div class="gnb-links col-6">
-      <a href="#" class="gnb-btn gnb-btn--ghost js-gnb-action" data-toast="준비중입니다">About Us</a>
+      <!-- 언어 바꾸기: KO ▾ 를 누르면 아래로 목록이 열린다(JS i18n 블록) -->
+      <div class="gnb-lang" id="gnbLang">
+        <button type="button" class="gnb-btn gnb-btn--ghost gnb-lang-btn" id="gnbLangBtn" aria-haspopup="true" aria-expanded="false" aria-controls="gnbLangMenu" aria-label="언어 선택">
+          <span id="gnbLangCode">KO</span>
+          <svg class="gnb-lang-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="gnb-lang-menu" id="gnbLangMenu" role="menu">
+          <button type="button" class="gnb-lang-opt" role="menuitemradio" data-lang="ko" aria-checked="true">한국어<svg class="gnb-lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+          <button type="button" class="gnb-lang-opt" role="menuitemradio" data-lang="en" aria-checked="false">English<svg class="gnb-lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+        </div>
+      </div>
       <a href="#" class="gnb-btn gnb-btn--solid js-gnb-action" data-toast="올해 하반기에 찾아뵐게요">Start</a>
     </div>
   </nav>
@@ -1765,7 +1852,7 @@
         <div class="plan plan--featured">
           <p class="plan-name">Starter</p>
           <p class="plan-for">“일할 때마다 계속 쓰고 싶어요”</p>
-          <p class="plan-price"><b data-count="29000">₩29,000</b><span>/월</span></p>
+          <p class="plan-price"><b data-count="29000" data-usd="19">₩29,000</b><span>/월</span></p>
           <a href="#" class="plan-cta plan-cta--solid js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Free의 모든 기능과 함께…</p>
           <ul class="plan-list">
@@ -1779,7 +1866,7 @@
         <div class="plan">
           <p class="plan-name">Pro</p>
           <p class="plan-for">“여러 개를 굴리며 넓혀 가고 싶어요”</p>
-          <p class="plan-price"><b data-count="59000">₩59,000</b><span>/월</span></p>
+          <p class="plan-price"><b data-count="59000" data-usd="39">₩59,000</b><span>/월</span></p>
           <a href="#" class="plan-cta js-gnb-action" data-toast="준비중입니다">시작하기</a>
           <p class="plan-incl">Starter의 모든 기능과 함께…</p>
           <ul class="plan-list">
@@ -1792,6 +1879,8 @@
       <p class="pricing-addon">
         <b>추가 결제 ₩20,000</b>
         이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 추가 결제로 이번 것만 더 하거나, Pro로 옮겨 넉넉하게 쓸 수 있습니다.
+        <!-- 달러 가격은 부가세 별도(원화는 포함) — 영어에서만 보인다 -->
+        <span class="pricing-vat" data-lang-only="en">All prices exclude VAT.</span>
       </p>
     </div>
   </section>
@@ -1897,6 +1986,260 @@
 
   const gnb = document.getElementById('gnb');
   const toast = document.getElementById('toast');
+
+  // ---- 언어 바꾸기(KO / EN) ----
+  // 한국어 원문이 기준이다. EN 표의 키는 화면에 있는 한국어 문장 그대로(공백은 한 칸으로 줄여서 비교) —
+  // 바꿀 땐 본문의 글자 조각(text node)과 몇몇 속성을 훑어 표에 있는 것만 갈아 끼운다.
+  // 스크립트가 직접 쓰는 문구(타이핑·버튼 상태·안내 메시지)는 tr()을 거친다. 표에 없는 글자는 그대로 둔다
+  const EN = {
+    // 문서·GNB
+    '핸드오프 Handoff · 내 말로 일하는 AI': 'Handoff · AI that works in your words',
+    '언어 선택': 'Choose language',
+    '준비중입니다': 'Coming soon',
+    '올해 하반기에 찾아뵐게요': 'See you later this year',
+    // 히어로
+    '드디어 내 말에 움직이고,': 'Finally, an AI that moves on your words',
+    '내 말로 일하는 AI': 'and works in your language',
+    '어떻게 하면 잘 알아들을까? 얘 지금 뭐라는 거지?': 'How do I make it understand? What is it even saying?',
+    'AI를 잘 쓰기 위해 AI를 공부하는 시대와 작별.': 'Say goodbye to studying AI just to use AI well.',
+    '나만의 툴을 만들어보세요': 'Build your own tool',
+    '하고 싶은 걸 편한 말로 말해 주세요': 'Tell us what you want, in your own words',
+    '광고비 대비 매출이 안 봐도 집계돼 있으면 좋겠어요': 'I wish revenue vs. ad spend just added itself up',
+    '아래로': 'Scroll down',
+    // 스텝
+    '카드 몇 번 고르기': 'Pick a few cards',
+    '방법은 저희가 정해요': 'We figure out the how',
+    '내 말로 듣고 결정': 'Hear it in your words, then decide',
+    '갈림길마다 함께': 'Together at every fork',
+    '끝나도 함께': 'Still with you when it’s done',
+    '쓰고 넓힐 때도 곁에서': 'Right beside you as you use and grow it',
+    '무엇이 됐으면 하세요?': 'What would you like to happen?',
+    '선택지 A': 'Option A',
+    '선택지 B': 'Option B',
+    '반복되는 일을 대신 처리해줬으면 해요': 'I want repetitive work handled for me',
+    '팔로업·알림·정리 같은 손 가는 일': 'Follow-ups, reminders, tidying up',
+    '선택전 (중복선택 가능)': 'Not selected (multi-select)',
+    '선택됨 (중복가능)': 'Selected (multi-select)',
+    '성과·지표가 자동으로 집계·관리됐으면 해요': 'I want results and metrics tracked automatically',
+    'ROI·ROAS·현황을 한눈에': 'ROI, ROAS and status at a glance',
+    '숫자는 어떻게 넣을까요?': 'How should the numbers get in?',
+    '제가 직접 입력할게요': 'I’ll enter them myself',
+    '표에 숫자만 넣으면 되게': 'Just type numbers into a table',
+    '광고 계정과 알아서 연결해 주세요': 'Connect my ad accounts for me',
+    '메타·구글 광고 계정을 이어서': 'Link my Meta and Google ad accounts',
+    '광고 데이터 입력': 'Ad data entry',
+    '입력 화면 이렇게 잡아봤어요. 날짜를 세로로 쭉 놓고, 줄마다 채널을 골라 넣는 형태예요. 이대로 갈까요?': 'Here’s a first take on the entry screen. Dates run down the side, and you pick a channel for each row. Shall we go with this?',
+    '채널을 세로, 기간을 가로로 놨어요. 한 화면에서 표 채우듯 바로 넣으시면 돼요.': 'Channels now run down the side, dates across the top. Just fill it in like a spreadsheet, all on one screen.',
+    '질문하기': 'Ask',
+    '좋아요': 'Looks good',
+    '네, 그게 낫네요': 'Yes, that’s better',
+    '결정했어요 ✓': 'Decided ✓',
+    '요청을 확인하고 PD가 화면을 다시 그리고 있어요…': 'Got it — the PD is redrawing the screen…',
+    '자세히 보기': 'Details',
+    '질문에 대해 고민하고 있어요…': 'Thinking about your question…',
+    '저는 채널을 세로로 놓고 기간을 가로로 봐요. 그렇게 정리해야 손에 익어요.': 'I like channels down the side and dates across the top. That’s how I’m used to working.',
+    '나가기': 'Exit',
+    '광고 ROI · ROAS 집계': 'Ad ROI · ROAS tracker',
+    '평소 (지난 12주)': 'Typical (last 12 weeks)',
+    '이번 주 (2/17~2/23)': 'This week (2/17–2/23)',
+    '광고비': 'Ad spend',
+    '매출': 'Revenue',
+    '평소 대비': 'vs. typical',
+    '팀 호출하기': 'Call the team',
+    '새 채팅': 'New chat',
+    '나 · 오후 03:42': 'Me · 3:42 PM',
+    'BE · 오후 03:42': 'BE · 3:42 PM',
+    'Google이 4.1에서 3.8로 떨어졌는데 왜 그런지 알 수 있어요?': 'Google dropped from 4.1 to 3.8 — can you tell me why?',
+    'Google 안에서 캠페인별로 갈라봤어요.': 'I broke Google down by campaign.',
+    '기존 캠페인 3개 4.2 (평소 그대로)': '3 existing campaigns  4.2 (as usual)',
+    '지난주 새로 켠 것 1.9': 'New one from last week  1.9',
+    '← 여기서 빠졌어요': '← this is the drop',
+    '이번 주 Google 광고비의 30%가 그 새 캠페인에, 나머지는 평소대로예요.': '30% of this week’s Google spend went to that new campaign; the rest is as usual.',
+    // 번역 와이프 — 전문용어
+    '프로토타입': 'Prototype', '유저 스토리': 'User story', '인덱스': 'Index', '우선순위 매트릭스': 'Priority matrix',
+    '번들링': 'Bundling', 'API 엔드포인트': 'API endpoint', '디자인 시스템': 'Design system', '레이트 리밋': 'Rate limit',
+    '상태 관리': 'State management', '마이그레이션': 'Migration', '캐싱': 'Caching', '8pt 그리드': '8pt grid',
+    '하이드레이션': 'Hydration', '와이어프레임': 'Wireframe', '스프린트': 'Sprint', '렌더링': 'Rendering',
+    '반응형': 'Responsive', '스코프': 'Scope', '백로그': 'Backlog', '로드맵': 'Roadmap', '마일스톤': 'Milestone',
+    '어포던스': 'Affordance',
+    // 번역 와이프 — 내 말
+    '눌러 보는 시안': 'A draft you can click', '누가 왜 쓰는지': 'Who uses it and why', '최소한으로 먼저': 'Bare minimum first',
+    '빨리 찾는 목차': 'A table of contents for quick lookup', '뭐부터 할지 표': 'A what-first chart', '파일 묶기': 'Packing files together',
+    '기능 주소': 'Where a feature lives', '공통 부품 규칙': 'Rules for shared parts', '한꺼번에 몰리지 않게': 'So it doesn’t all rush in at once',
+    '화면이 기억하는 것': 'What the screen remembers', '데이터 이사': 'Moving data house', '자주 쓰는 건 미리 꺼내 두기': 'Keep the usual stuff handy',
+    '칸 맞추기': 'Lining things up', '화면에 동작 입히기': 'Bringing the screen to life', '뼈대 그림': 'A skeleton sketch',
+    '2주 작업 묶음': 'A two-week batch of work', '화면 그리기': 'Drawing the screen', '폰에서도 맞게': 'Fits on phones too',
+    '이번에 할 범위': 'What’s in this round', '해야 할 일 목록': 'To-do list', '잘됐는지 볼 숫자': 'Numbers that show it works',
+    '언제 뭘 할지': 'What happens when', '중간 목표 지점': 'A checkpoint on the way', '누를 수 있어 보이게': 'Looks clickable',
+    // 번역 와이프 — 본문
+    '무엇이든 만들 수 있게 됐는데,': 'You can build anything now,',
+    '어느 순간 손이 멈춥니다.': 'but at some point, you freeze.',
+    '“이거 내가 건드리면 안 될 것 같은데.”': '“I really shouldn’t touch this one.”',
+    '결과물은 빠르게 쌓이는데, 이해하지 못한 채 쌓인 것도 그만큼 쌓입니다. 그러다 고칠 수도, 무엇이 잘못됐는지 짚어낼 수도 없는 상태가 됩니다.': 'Output piles up fast, and so does everything you never understood. Soon you can’t fix it, or even point to what went wrong.',
+    '잘 쓰려면 그 영역을 공부해야 하고, 쓰면 쓸수록 알아야 할 것은 끝없이 늘어납니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서는 스스로를 “문외한”이라고 부릅니다.': 'To use it well, you must study the field, and the more you use it, the more there is to learn. Experience doesn’t matter. Facing a field that isn’t theirs, anyone calls themselves an “outsider.”',
+    '문제는 실력이 아닙니다.': 'The problem isn’t skill.',
+    '내 것이 아닌 남의 직무를 먼저 배워야 한다는 전제입니다.': 'It’s the belief that you must first learn someone else’s job.',
+    '같은 이야기를 내 말로 들으면,': 'Hear it all in your own words,',
+    '다시 손이 움직입니다.': 'and suddenly, you move again.',
+    '“아, 이건 이렇게 바꾸면 되는구나.”': '“Oh, so I just change it like this.”',
+    '무엇을 왜 하는지 알아듣고 나니, 결과물이 쌓이는 만큼 이해도 같이 쌓입니다. 직접 고칠 수 있고, 무엇이 잘못됐는지도 짚어낼 수 있습니다.': 'You know what’s done and why, so understanding piles up with the output. Now you can fix it, and even point to what went wrong.',
+    '모르는 말은 내가 아는 말로 바뀌어 옵니다. 경력과는 상관없습니다. 누구든 자기 일이 아닌 영역 앞에서도 스스로 결정을 내릴 수 있습니다.': 'Words you don’t know come back in words you do, so the more you use it, the more you understand. Experience doesn’t matter. Facing a field that isn’t theirs, anyone can make their own calls.',
+    '문제는 실력이 아니었습니다.': 'The problem was never skill.',
+    '남의 직무를 먼저 배워야 한다는 전제를, 핸드오프가 지웁니다.': 'Handoff removes the need to first learn someone else’s job.',
+    // 방식 비교
+    '시키는 대로 하기 전에,': 'Before doing as it’s told,',
+    '맞는 방법인지 먼저 봅니다.': 'it checks if it’s the right way.',
+    '핸드오프에서 목적은 당신 것, 방법은 우리 것.': 'At Handoff, the goal is yours and the method is ours.',
+    '그래서 방법에 대해서만 반대할 자격이 생깁니다.': 'That’s what earns us the right to push back — on the method only.',
+    '요청 그대로 하면': 'Doing exactly as asked',
+    'ROAS는 그냥 매출 나누기 광고비니까, 채널별로 다 더해서 한 번에 계산하면 되죠?': 'ROAS is just revenue divided by ad spend, so I can add up every channel and calculate it in one go, right?',
+    '네, 계산했어요! 전체 ROAS는': 'Done! Your overall ROAS is',
+    '이에요.': '.',
+    '✓ 요청대로 완료': '✓ Done as requested',
+    '빠르지만, 숫자가 달라질 수 있어요.': 'Fast — but the number may be off.',
+    '핸드오프는': 'Handoff',
+    '목적부터 봅니다': 'starts with the goal',
+    '잠깐요. 그렇게 다 더하면 숫자가 달라져요. 같은 데이터로 두 번 계산해 볼게요.': 'Hold on. Adding it all up changes the number. Let me run the same data both ways.',
+    '통째로 더해서 나누면': 'Add it all, then divide',
+    '채널별로 묶고 나서 나누면': 'Group by channel, then divide',
+    '통째로': 'All at once',
+    '아, 묶고 나서로': 'Oh, group first',
+    '한 번 멈추고, 맞는 방법을 함께 정해요.': 'It pauses, and you pick the right way together.',
+    // 요금
+    '무료로 시작하고,': 'Start free,',
+    '필요할 때만 더하세요.': 'add more only when you need it.',
+    '누구나 무료로 시작할 수 있습니다. 무료 플랜으로 핸드오프를 먼저 경험해 보세요.': 'Anyone can start for free. Try Handoff on the Free plan first.',
+    '더 큰 프로젝트와 팀 협업이 필요해질 때 업그레이드하면 됩니다.': 'Upgrade when you need bigger projects and team collaboration.',
+    '“일단 한 번 해 보고 싶어요”': '“I just want to give it a try”',
+    '무료로 시작하기': 'Start for free',
+    'Free에 포함된 기능': 'What’s included in Free',
+    '내 말로 대화하는 프로젝트 1개': '1 project, in your own words',
+    '직무 에이전트와 소통, 결정': 'Talk and decide with role agents',
+    '산출물 배포 및 활용 (7일 동안 활성화)': 'Deploy and use your output (active for 7 days)',
+    '커뮤니티 지원 (예정)': 'Community support (coming soon)',
+    '“일할 때마다 계속 쓰고 싶어요”': '“I want it every time I work”',
+    '/월': '/mo',
+    '시작하기': 'Get started',
+    'Free의 모든 기능과 함께…': 'Everything in Free, plus…',
+    '프로젝트 개수 제한 없이 만들기': 'Unlimited projects',
+    '히스토리와 맥락을 학습해 나에게 맞는 에이전트 팀으로 성장': 'An agent team that learns your history and context and grows to fit you',
+    '프로젝트 완료 후에도 산출물 안에서 이어지는 서비스 에이전트 지원': 'Service agents that stay inside your output after the project ends',
+    '완성한 산출물의 배포·유지 비용 포함': 'Hosting and upkeep of finished output included',
+    '“여러 개를 굴리며 넓혀 가고 싶어요”': '“I want to run several and keep expanding”',
+    'Starter의 모든 기능과 함께…': 'Everything in Starter, plus…',
+    '한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배': 'Twice Starter’s monthly capacity to build and run',
+    '산출물에 새 화면·지표를 더하고 다른 산출물과 잇는 확장까지': 'Expand output with new screens and metrics, and connect it to other output',
+    '막혔을 때 고치기는 언제나 무료': 'Fixes when you’re stuck are always free',
+    '₩0': '$0',
+    '₩29,000': '$19',
+    '₩59,000': '$39',
+    '추가 결제 ₩20,000': 'Add-on $13',
+    '이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 추가 결제로 이번 것만 더 하거나, Pro로 옮겨 넉넉하게 쓸 수 있습니다.': 'When a job is bigger than this month’s capacity, continue it next month, buy an add-on to finish just this one, or move to Pro for more room.',
+    // FAQ
+    '자주 묻는 질문': 'FAQ',
+    '궁금한 건 핸드오프에게 바로 물어보세요.': 'Ask Handoff anything, right here.',
+    '핸드오프에게 물어보기': 'Ask Handoff',
+    '보통 바로 답해요': 'Usually replies instantly',
+    '핸드오프는 무엇인가요?': 'What is Handoff?',
+    '핸드오프(Handoff)는 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.': 'Handoff is an AI service: tell it what you want in your own words, and a team of role-based AI agents works out what’s needed and how to build it — all the way to the finished output.',
+    'AI나 전문 분야를 몰라도 쓸 수 있나요?': 'Can I use it without knowing AI or the technical field?',
+    '네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다.': 'Yes. After describing what you want once, in your own words, you just pick a few cards. Jargon and the work process are explained in words you understand, and you decide together at every fork in the road.',
+    '어떤 걸 만들 수 있나요?': 'What can I build?',
+    '광고 성과 대시보드, 고객 문의 정리 도구, 재고·주문 관리 화면처럼 내 일에 바로 쓰는 업무 도구를 만듭니다. 하고 싶은 일을 말하면, 어떤 형태가 맞는지부터 함께 정합니다.': 'Work tools you can put to use right away — an ad performance dashboard, a customer inquiry organizer, an inventory and order screen. Tell us what you want to do, and we start by deciding together what form fits best.',
+    '다른 AI 도구와 무엇이 다른가요?': 'How is it different from other AI tools?',
+    '핸드오프에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다.': 'At Handoff, you set the goal and a team of role agents handles the method. Rather than following requests to the letter, it proposes the method that best fits your goal and explains why in your words. Even after the project ends, it stays with you as you use and expand the output.',
+    '만든 걸 나중에 고치거나 넓힐 수 있나요?': 'Can I fix or expand what I built later?',
+    '네. 완성된 산출물 안에서 언제든 핸드오프를 불러 물어보고, 고치고, 새 화면이나 지표를 더할 수 있습니다. 프로젝트가 끝나도 쓰는 동안 계속 함께합니다.': 'Yes. From inside your finished output, you can call Handoff anytime to ask questions, make fixes, or add new screens and metrics. It stays with you for as long as you use it, even after the project ends.',
+    '요금은 얼마인가요?': 'How much does it cost?',
+    'Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다.': 'The Free plan costs nothing and includes 1 project, with output you can deploy and use for 7 days. Starter is $19/month with unlimited projects, and Pro is $39/month with twice Starter’s monthly capacity to build and run. Work bigger than this month’s capacity can continue next month, or you can finish just that job with a $13 add-on. All prices exclude VAT.',
+    '언제부터 쓸 수 있나요?': 'When can I start using it?',
+    '2026년 하반기에 출시할 예정입니다.': 'We plan to launch in the second half of 2026.',
+    '다 물어보셨어요. 더 궁금한 건 출시 후 핸드오프에게 바로 물어보세요.': 'That’s everything. Anything else, ask Handoff directly after launch.',
+    // 비전·출시 알림
+    '남의 직무를 배우지 않아도': 'A world where anyone sees their own work through,',
+    '누구나 자기 일을 끝까지 해내는 세상.': 'without learning someone else’s job.',
+    'AI는 다룰 줄 아는 소수의 것이 아니라, 무언가를 이루려는 모두의 것이어야 합니다.': 'AI shouldn’t belong to the few who know how to handle it, but to everyone trying to get something done.',
+    '이메일 주소': 'Email address',
+    '출시되면 알려 드릴 이메일 주소': 'Your email for launch updates',
+    '출시 알림 받기': 'Get launch updates',
+    '출시 알림을 위한 이메일 수집·이용에 동의합니다 (필수)': 'I agree to the collection and use of my email for launch updates (required)',
+    '수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 파기': 'Collected: email · Purpose: launch notification · Retention: deleted after it’s sent',
+    '동의하지 않으면 알림을 받을 수 없습니다.': 'Without your consent, we can’t send the notification.',
+    '이메일 주소를 다시 확인해 주세요.': 'Please check your email address.',
+    '이메일 수집·이용에 동의해 주셔야 알림을 보내 드릴 수 있습니다.': 'Please agree to the email collection and use so we can notify you.',
+    '준비중입니다. 잠시 후 다시 시도해 주세요.': 'Not ready yet. Please try again shortly.',
+    '신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.': 'You’re on the list. We’ll email you at launch.',
+    '응답이 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.': 'This is taking too long. Please try again shortly.',
+    '보내지 못했습니다. 잠시 후 다시 시도해 주세요.': 'Couldn’t send. Please try again shortly.',
+    // 푸터
+    '대표자: 이재교': 'CEO: Jaekyo Lee',
+    '문의: support@handoff.co.kr': 'Contact: support@handoff.co.kr',
+  };
+  const KO = Object.fromEntries(Object.entries(EN).map(([k, v]) => [i18nKey(v), k])); // 영어 → 원문(되돌릴 때)
+  function i18nKey(s) { return s.replace(/\s+/g, ' ').trim(); }
+  const LANG_KEY = 'handoff-lang';
+  let lang = 'ko';
+  try { lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem(LANG_KEY) || 'ko'; } catch (e) {}
+  if (lang !== 'en') lang = 'ko';
+  // 지금 언어로 — 원문(한국어)이든 이미 바뀐 영어든 넣으면 맞는 쪽이 나온다. 표에 없으면 그대로
+  function tr(s) {
+    const k = i18nKey(s);
+    const ko = KO[k] || k;
+    return lang === 'en' ? (EN[ko] || s) : (KO[k] ? ko : s);
+  }
+  const I18N_ATTRS = ['placeholder', 'aria-label', 'alt', 'data-toast', 'data-a'];
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = tr(document.title);
+    // 글자 조각: 앞뒤 공백은 그대로 두고 가운데만 바꾼다
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.parentElement.closest('script, style') || !n.nodeValue.trim() ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const next = tr(n.nodeValue);
+      if (next === n.nodeValue) continue;
+      const [, lead, , tail] = n.nodeValue.match(/^(\s*)([\s\S]*?)(\s*)$/);
+      n.nodeValue = lead + next.trim() + tail;
+    }
+    I18N_ATTRS.forEach((attr) => document.querySelectorAll(`[${attr}]`).forEach((el) => {
+      const v = el.getAttribute(attr);
+      const next = tr(v);
+      if (next !== v) el.setAttribute(attr, next);
+    }));
+    langCode.textContent = lang.toUpperCase();
+    window.dispatchEvent(new Event('langchange')); // 글자 길이가 바뀐 것에 맞춰 다시 재야 하는 곳들이 듣는다
+    langOpts.forEach((o) => o.setAttribute('aria-checked', String(o.dataset.lang === lang)));
+  }
+
+  const langWrap = document.getElementById('gnbLang');
+  const langBtn = document.getElementById('gnbLangBtn');
+  const langCode = document.getElementById('gnbLangCode');
+  const langOpts = langWrap.querySelectorAll('.gnb-lang-opt');
+  function setLangMenu(open) {
+    langWrap.classList.toggle('is-open', open);
+    langBtn.setAttribute('aria-expanded', String(open));
+  }
+  langBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = !langWrap.classList.contains('is-open');
+    setLangMenu(open);
+    if (open) langWrap.querySelector('.gnb-lang-opt[aria-checked="true"]').focus({ preventScroll: true });
+  });
+  langOpts.forEach((o) => o.addEventListener('click', () => {
+    setLangMenu(false);
+    langBtn.focus({ preventScroll: true });
+    if (o.dataset.lang === lang) return;
+    lang = o.dataset.lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyLang();
+    if (typeof gtag === 'function') gtag('event', 'language_change', { language: lang });
+  }));
+  document.addEventListener('click', (e) => { if (!langWrap.contains(e.target)) setLangMenu(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && langWrap.classList.contains('is-open')) { setLangMenu(false); langBtn.focus({ preventScroll: true }); }
+  });
+  window.addEventListener('scroll', () => setLangMenu(false), { passive: true }); // 아래로 스크롤하면 GNB가 숨으니 같이 닫는다
+  if (lang !== 'ko') applyLang();
 
   document.querySelectorAll('.gnb-logo, .footer-logo-row').forEach((el) => {
     el.addEventListener('click', () => {
@@ -2053,13 +2396,14 @@
     dcBubble.classList.toggle('is-open', (p >= 0.02 && p < 0.45) || second);
     dcBubble.classList.toggle('is-b', second);
     dcGrid.classList.toggle('is-transposed', p >= 0.659);
-    const okText = p >= 0.908 ? '결정했어요 ✓' : second ? '네, 그게 낫네요' : '좋아요';
+    const okText = tr(p >= 0.908 ? '결정했어요 ✓' : second ? '네, 그게 낫네요' : '좋아요');
     if (dcOk.textContent !== okText) dcOk.textContent = okText;
     dcOk.classList.toggle('is-press', p >= 0.892 && p < 0.908);
     dcOk.classList.toggle('is-done', p >= 0.908);
     // 내 말 타이핑 → Send → 보낸 말은 흐려지고 고민 중 → 다시 그린 뒤 빈 입력창
-    const len = p >= 0.618 ? 0 : Math.round(DC_SAY.length * Math.min(1, Math.max(0, (p - 0.1) / 0.241)));
-    if (len !== dcTypedLen) { dcTypedLen = len; dcTyped.textContent = DC_SAY.slice(0, len); }
+    const dcSay = tr(DC_SAY);
+    const len = p >= 0.618 ? 0 : Math.round(dcSay.length * Math.min(1, Math.max(0, (p - 0.1) / 0.241)));
+    if (len !== dcTypedLen) { dcTypedLen = len; dcTyped.textContent = dcSay.slice(0, len); }
     dcSend.classList.toggle('is-press', p >= 0.435 && p < 0.447);
     dcComposer.classList.toggle('is-sent', p >= 0.447 && p < 0.618);
     dcComposer.classList.toggle('is-idle', p < 0.1 || p >= 0.618);
@@ -2082,7 +2426,7 @@
   const hdFlag = document.getElementById('hdFlag');
   const hdCursor = document.getElementById('hdCursor');
   const HD_SAY = 'Google이 4.1에서 3.8로 떨어졌는데 왜 그런지 알 수 있어요?';
-  hdMe.textContent = HD_SAY;
+  hdMe.textContent = tr(HD_SAY);
   // el의 자리를 root 기준 좌표로 — offsetParent를 따라 올라가며 더한다
   function relPt(el, root, fx, fy) {
     let x = el.offsetWidth * fx, y = el.offsetHeight * fy;
@@ -2107,8 +2451,9 @@
     hdCall.classList.toggle('is-press', ms >= 1480 && ms < 1620);
     hdCall.classList.toggle('is-compose', ms >= 1620);
     hdCall.classList.toggle('is-gone', ms >= 4600);
-    const typed = ms < 2050 ? 0 : Math.min(HD_SAY.length, Math.round(HD_SAY.length * (ms - 2050) / 1700)); // 글자당 약 50ms
-    if (typed !== hdTypedLen) { hdTypedLen = typed; hdTyped.textContent = HD_SAY.slice(0, typed); }
+    const hdSay = tr(HD_SAY);
+    const typed = ms < 2050 ? 0 : Math.min(hdSay.length, Math.round(hdSay.length * (ms - 2050) / 1700)); // 글자당 약 50ms
+    if (typed !== hdTypedLen) { hdTypedLen = typed; hdTyped.textContent = hdSay.slice(0, typed); }
     hdSend.classList.toggle('is-press', ms >= 4380 && ms < 4520);
     hdChat.classList.toggle('is-open', ms >= 4600);
     hdBe.classList.toggle('is-answered', ms >= 6000);
@@ -2237,20 +2582,26 @@
   const PRICE_MS = 1100;
   const priceEase = (t) => 1 - Math.pow(1 - t, 3);
   if (priceEls.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    priceEls.forEach((el) => { el.style.display = 'inline-block'; el.style.minWidth = `${el.offsetWidth}px`; el.textContent = '₩0'; });
+    // 언어에 따라 원(100원 단위로 올라감) 또는 달러(1달러 단위)
+    const priceText = (v) => (lang === 'en' ? `$${v}` : `₩${v.toLocaleString('en-US')}`);
+    const priceTo = (el) => Number(lang === 'en' ? el.dataset.usd : el.dataset.count);
+    priceEls.forEach((el) => { el.style.display = 'inline-block'; el.textContent = priceText(0); });
     const priceIO = new IntersectionObserver(([e]) => {
       if (!e.isIntersecting) return;
       priceIO.disconnect();
+      // 숫자 폭이 늘어나며 옆 "/월"이 밀리지 않게, 지금 언어의 최종 값으로 폭을 재서 잡아 둔다
+      priceEls.forEach((el) => { el.textContent = priceText(priceTo(el)); el.style.minWidth = `${el.offsetWidth}px`; });
       const t0 = performance.now();
       (function tick(now) {
         let running = false;
         priceEls.forEach((el, i) => {
           const t = Math.min(1, Math.max(0, (now - t0 - i * 120) / PRICE_MS));
           if (t < 1) running = true;
-          const v = Math.round(Number(el.dataset.count) * priceEase(t) / 100) * 100; // 100원 단위로 올라간다
-          el.textContent = `₩${v.toLocaleString('ko-KR')}`;
+          const step = lang === 'en' ? 1 : 100;
+          el.textContent = priceText(Math.round(priceTo(el) * priceEase(t) / step) * step);
         });
         if (running) requestAnimationFrame(tick);
+        else priceEls.forEach((el) => { el.style.minWidth = ''; }); // 다 올라가면 풀어 둔다(나중에 언어를 바꿔도 폭이 맞게)
       })(t0);
     }, { threshold: 0.2 }); // 폰에선 플랜이 세로로 길게 쌓여 절반이 한 화면에 안 들어온다
     priceIO.observe(document.querySelector('.pricing-row'));
@@ -2316,6 +2667,7 @@
   if (document.fonts) document.fonts.ready.then(syncTwHeights); // 웹폰트가 늦게 오면 줄바꿈이 달라진다
   let twResizeRaf = 0;
   window.addEventListener('resize', () => { cancelAnimationFrame(twResizeRaf); twResizeRaf = requestAnimationFrame(syncTwHeights); });
+  window.addEventListener('langchange', syncTwHeights);
 
   // ---- FAQ 채팅: 추천 칩을 누르면 → 칩은 사라지고 내 말풍선이 대화창 맨 아래에 떠오르고 → 핸드오프가 "쓰는 중" → 답.
   // 대화는 쌓이며 대화창 안에서만 아래로 스크롤된다(채팅 창·섹션 크기는 그대로). 한 번에 하나씩(진행 중엔 다른 칩을 막는다) ----
@@ -2409,7 +2761,7 @@
       const fromH = faqChipsEl.offsetHeight;
       const done = document.createElement('p');
       done.className = 'faq-chips-done';
-      done.textContent = '다 물어보셨어요. 더 궁금한 건 출시 후 핸드오프에게 바로 물어보세요.';
+      done.textContent = tr('다 물어보셨어요. 더 궁금한 건 출시 후 핸드오프에게 바로 물어보세요.');
       chip.replaceWith(done);
       faqEaseChipsHeight(fromH);
       if (!faqReduce) done.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 150, easing: 'ease-out', fill: 'backwards' });
@@ -2435,8 +2787,8 @@
     visionEmail.placeholder = '';
     visionTypeTimer = setInterval(() => {
       n++;
-      visionEmail.placeholder = VISION_PLACEHOLDER.slice(0, n);
-      if (n >= VISION_PLACEHOLDER.length) clearInterval(visionTypeTimer);
+      visionEmail.placeholder = tr(VISION_PLACEHOLDER).slice(0, n);
+      if (n >= tr(VISION_PLACEHOLDER).length) clearInterval(visionTypeTimer);
     }, VISION_TYPE_MS);
   }
   new IntersectionObserver(([e]) => {
@@ -2449,7 +2801,7 @@
     if (e.intersectionRatio < 0.4 || visionPlayed) return;
     visionPlayed = true;
     visionSection.classList.add('is-lit');
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { visionEmail.placeholder = VISION_PLACEHOLDER; return; }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { visionEmail.placeholder = tr(VISION_PLACEHOLDER); return; }
     typeVisionPlaceholder();
   }, { threshold: [0, 0.4] }).observe(visionSection);
 
@@ -2462,7 +2814,7 @@
   const waitlistBtn = waitlistForm.querySelector('.waitlist-btn');
   const waitlistBtnLabel = waitlistBtn.querySelector('.wl-btn-label');
   function setWaitlistMsg(text, isError) {
-    waitlistMsg.textContent = text;
+    waitlistMsg.textContent = tr(text);
     waitlistMsg.classList.toggle('is-error', !!isError);
   }
   waitlistForm.addEventListener('submit', async (e) => {
@@ -2489,7 +2841,7 @@
       await fetch(`${WAITLIST_ENDPOINT}?${qs}`, { method: 'GET', mode: 'no-cors', signal: timeout });
       // 완료: 버튼이 입력칸 자리를 채우며 문구로 바뀐다. 화면엔 안 보이는 상태 문구도 같이 갱신해
       // 화면 낭독기 사용자에게도 완료가 전달되게 한다
-      const DONE_TEXT = '신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.';
+      const DONE_TEXT = tr('신청됐습니다. 출시하면 이 주소로 알려 드리겠습니다.');
       waitlistBtnLabel.textContent = DONE_TEXT;
       waitlistBtn.classList.remove('is-loading');
       waitlistField.classList.add('is-done');
@@ -2626,11 +2978,11 @@
     if (typed === 0) {
       composerText.classList.remove('is-overflow');
       composerText.dataset.empty = 'true';
-      composerText.textContent = composerPlaceholder;
+      composerText.textContent = tr(composerPlaceholder);
       return;
     }
     composerText.dataset.empty = 'false';
-    composerText.textContent = HERO_EXAMPLE.slice(0, typed);
+    composerText.textContent = tr(HERO_EXAMPLE).slice(0, typed);
     if (showCaret) {
       const caret = document.createElement('span');
       caret.className = 'hero-caret';
@@ -2654,14 +3006,14 @@
       const timer = setInterval(() => {
         typed++;
         renderTyped(true);
-        if (typed >= HERO_EXAMPLE.length) { clearInterval(timer); resolve(); }
+        if (typed >= tr(HERO_EXAMPLE).length) { clearInterval(timer); resolve(); }
       }, TYPE_MS);
     });
   }
   function showEnd() {
     showHeroVideoEnd();
     renderHero(1);
-    typed = HERO_EXAMPLE.length;
+    typed = tr(HERO_EXAMPLE).length;
     renderTyped(false);
     heroState = 'end';
   }
