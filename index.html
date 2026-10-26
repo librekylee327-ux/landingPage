@@ -1936,7 +1936,7 @@
             <button type="submit" class="waitlist-btn"><span class="wl-btn-label">출시 알림 받기</span><span class="wl-btn-spinner" aria-hidden="true"></span></button>
           </div>
           <label class="waitlist-consent"><input type="checkbox" name="consent" required> 출시 알림을 위한 이메일 수집·이용에 동의합니다 (필수)</label>
-          <p class="waitlist-note">수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 파기<br>동의하지 않으면 알림을 받을 수 없습니다.</p>
+          <p class="waitlist-note">수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 지체 없이 파기<br>동의를 거부할 수 있으며, 거부하면 알림을 받을 수 없습니다.</p>
           <p class="waitlist-msg" role="status" aria-live="polite"></p>
         </form>
       </div>
@@ -1957,6 +1957,7 @@
           <div class="footer-rep-info">
             <p>대표자: 이재교</p>
             <p>문의: support@handoff.co.kr</p>
+            <a href="privacy.html" class="footer-linkedin">개인정보 처리방침</a>
           </div>
           <div class="footer-contact-group">
             <span class="footer-contacts-label"></span>
@@ -2163,8 +2164,8 @@
     '출시되면 알려 드릴 이메일 주소': 'Your email for launch updates',
     '출시 알림 받기': 'Get launch updates',
     '출시 알림을 위한 이메일 수집·이용에 동의합니다 (필수)': 'I agree to the collection and use of my email for launch updates (required)',
-    '수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 파기': 'Collected: email · Purpose: launch notification · Retention: deleted after it’s sent',
-    '동의하지 않으면 알림을 받을 수 없습니다.': 'Without your consent, we can’t send the notification.',
+    '수집 항목: 이메일 · 목적: 출시 알림 발송 · 보유 기간: 출시 알림 발송 후 지체 없이 파기': 'Collected: email · Purpose: launch notification · Retention: deleted promptly after it’s sent',
+    '동의를 거부할 수 있으며, 거부하면 알림을 받을 수 없습니다.': 'You may decline, but then we can’t send the notification.',
     '이메일 주소를 다시 확인해 주세요.': 'Please check your email address.',
     '이메일 수집·이용에 동의해 주셔야 알림을 보내 드릴 수 있습니다.': 'Please agree to the email collection and use so we can notify you.',
     '준비중입니다. 잠시 후 다시 시도해 주세요.': 'Not ready yet. Please try again shortly.',
@@ -2174,6 +2175,7 @@
     // 푸터
     '대표자: 이재교': 'CEO: Jaekyo Lee',
     '문의: support@handoff.co.kr': 'Contact: support@handoff.co.kr',
+    '개인정보 처리방침': 'Privacy Policy',
   };
   const KO = Object.fromEntries(Object.entries(EN).map(([k, v]) => [i18nKey(v), k])); // 영어 → 원문(되돌릴 때)
   function i18nKey(s) { return s.replace(/\s+/g, ' ').trim(); }
