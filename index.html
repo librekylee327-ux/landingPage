@@ -161,6 +161,12 @@
 }
 </script>
 <style>
+  @font-face {
+    font-family: 'Cafe24PROSlim';
+    src: url('assets/fonts/Cafe24PROSlimFit.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
     --page-margin: 60px;   /* 페이지 좌우 마진 */
@@ -382,10 +388,11 @@
   }
   .hero-title-main {
     color: #fff;
+    font-family: 'Cafe24PROSlim', 'Pretendard', sans-serif;
     font-size: 72px;
-    font-weight: 700;
-    line-height: 1.18;
-    letter-spacing: -0.035em;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
     text-shadow: 0 2px 30px rgba(4, 10, 28, 0.5);
   }
   .hero-desc {
