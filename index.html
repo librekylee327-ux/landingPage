@@ -18,6 +18,9 @@
 <title>핸드오프 Handoff · 내 말로 일하는 AI</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="canonical" href="https://www.handoff.co.kr/">
+<link rel="alternate" hreflang="ko" href="https://www.handoff.co.kr/">
+<link rel="alternate" hreflang="en" href="https://www.handoff.co.kr/en">
+<link rel="alternate" hreflang="x-default" href="https://www.handoff.co.kr/">
 <meta name="description" content="하고 싶은 걸 편한 말로 말하면, 무엇이 필요하고 어떻게 만들지는 직무 전문가 팀이 맡아요. 방향이 갈리는 자리는 알아듣는 말로 함께 정해요.">
 <meta property="og:title" content="핸드오프 Handoff · 내 말로 일하는 AI">
 <meta property="og:description" content="하고 싶은 걸 편한 말로 말하면, 무엇이 필요하고 어떻게 만들지는 직무 전문가 팀이 맡아요. 방향이 갈리는 자리는 알아듣는 말로 함께 정해요.">
@@ -25,6 +28,7 @@
 <meta property="og:url" content="https://www.handoff.co.kr/">
 <meta property="og:site_name" content="핸드오프 Handoff">
 <meta property="og:locale" content="ko_KR">
+<meta property="og:locale:alternate" content="en_US">
 <meta property="og:image" content="https://www.handoff.co.kr/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="핸드오프 Handoff · 내 말로 일하는 AI">
@@ -2218,6 +2222,15 @@
     langCode.textContent = lang.toUpperCase();
     window.dispatchEvent(new Event('langchange')); // 글자 길이가 바뀐 것에 맞춰 다시 재야 하는 곳들이 듣는다
     langOpts.forEach((o) => o.setAttribute('aria-checked', String(o.dataset.lang === lang)));
+    syncLangUrl();
+  }
+  // 영문이면 주소창을 /en으로 — 주소를 그대로 공유해도 링크 미리보기가 영어로 뜬다(미리보기 태그는 en.html에)
+  function syncLangUrl() {
+    if (!/^\/(en|index\.html)?$/.test(location.pathname)) return;
+    const q = new URLSearchParams(location.search);
+    q.delete('lang');
+    const qs = q.toString();
+    try { history.replaceState(history.state, '', (lang === 'en' ? '/en' : '/') + (qs ? '?' + qs : '') + location.hash); } catch (e) {}
   }
 
   const langWrap = document.getElementById('gnbLang');
