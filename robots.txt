@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.handoff.co.kr/sitemap.xml
+Sitemap: https://www.teamplate.co.kr/sitemap.xml
