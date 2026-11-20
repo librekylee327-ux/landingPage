@@ -43,6 +43,10 @@
       "url": "https://www.teamplate.co.kr/",
       "logo": "https://www.teamplate.co.kr/assets/favicon.png",
       "email": "support@teamplate.co.kr",
+      "founder": {
+        "@type": "Person",
+        "name": "이재교"
+      },
       "description": "지식은 있는데 실무는 처음이라면. AI 동료 팀과 프로젝트를 함께하며 에이전트 활용, 협업, 실무 감각을 쌓아요.",
       "sameAs": [
         "https://www.linkedin.com/company/teamplate-ai",
@@ -51,109 +55,65 @@
       ]
     },
     {
+      "@type": "WebSite",
+      "@id": "https://www.teamplate.co.kr/#website",
+      "name": "팀플릿",
+      "alternateName": "teamplate",
+      "url": "https://www.teamplate.co.kr/",
+      "inLanguage": "ko",
+      "publisher": {
+        "@id": "https://www.teamplate.co.kr/#organization"
+      }
+    },
+    {
       "@type": "WebApplication",
       "@id": "https://www.teamplate.co.kr/#app",
       "name": "팀플릿",
       "alternateName": "teamplate",
       "url": "https://www.teamplate.co.kr/",
-      "applicationCategory": "BusinessApplication",
+      "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
       "inLanguage": "ko",
-      "description": "팀플릿(teamplate)은 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다.",
+      "description": "팀플릿(teamplate)은 마케터 지망 신입이 기획·디자인·개발·데이터 AI 동료와 한 팀이 되어, 회사에서 실제로 하는 프로젝트를 처음부터 끝까지 해 보는 실무 연습 서비스예요. 강의를 듣는 대신 내가 정하고, 동료의 반응과 결과로 배워요. 첫 3개월 동안 가상 회사 세 곳에서 프로젝트 10개를 해요. 2027년 2~3월 얼리 액세스로 약 100명에게 먼저 열어요.",
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "마케터 지망 신입·취업 준비생"
+      },
       "publisher": {
         "@id": "https://www.teamplate.co.kr/#organization"
       },
       "offers": [
         {
           "@type": "Offer",
-          "name": "Free",
-          "price": "0",
-          "priceCurrency": "KRW"
-        },
-        {
-          "@type": "Offer",
-          "name": "Starter",
-          "price": "29000",
-          "priceCurrency": "KRW",
-          "priceSpecification": {
-            "@type": "UnitPriceSpecification",
-            "price": "29000",
-            "priceCurrency": "KRW",
-            "billingDuration": "P1M"
-          }
-        },
-        {
-          "@type": "Offer",
-          "name": "Pro",
+          "name": "개인",
           "price": "59000",
           "priceCurrency": "KRW",
+          "description": "한 달에 프로젝트 3~4개. 3개월이면 프로젝트 10개 경로를 마쳐요.",
           "priceSpecification": {
             "@type": "UnitPriceSpecification",
             "price": "59000",
             "priceCurrency": "KRW",
             "billingDuration": "P1M"
           }
-        }
-      ]
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://www.teamplate.co.kr/#faq",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "팀플릿은 무엇인가요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "팀플릿(teamplate)은 하고 싶은 일을 편한 말로 말하면, 직무별 AI 에이전트 팀이 무엇이 필요하고 어떻게 만들지를 맡아 산출물까지 만들어 주는 AI 서비스입니다."
-          }
         },
         {
-          "@type": "Question",
-          "name": "AI나 전문 분야를 몰라도 쓸 수 있나요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "네. 하고 싶은 걸 편한 말로 한 번 말한 뒤에는 카드 몇 장만 고르면 됩니다. 전문용어와 작업 과정은 알아듣는 말로 설명하고, 방향이 갈리는 자리마다 함께 결정합니다."
-          }
+          "@type": "Offer",
+          "name": "1개 몫 더하기",
+          "price": "25000",
+          "priceCurrency": "KRW",
+          "description": "이번 달 몫을 다 썼을 때 프로젝트 1개를 더해요."
         },
         {
-          "@type": "Question",
-          "name": "어떤 걸 만들 수 있나요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "광고 성과 대시보드, 고객 문의 정리 도구, 재고·주문 관리 화면처럼 내 일에 바로 쓰는 업무 도구를 만듭니다. 하고 싶은 일을 말하면, 어떤 형태가 맞는지부터 함께 정합니다."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "다른 AI 도구와 무엇이 다른가요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "팀플릿에서 목적은 사용자가 정하고, 방법은 직무 에이전트 팀이 맡습니다. 요청을 그대로 따르기보다 목표에 가장 맞는 방법을 제안하고, 그 이유를 사용자의 말로 설명합니다. 프로젝트가 끝난 뒤에도 산출물을 쓰고 확장하는 과정을 함께합니다."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "만든 걸 나중에 고치거나 넓힐 수 있나요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "네. 완성된 산출물 안에서 언제든 팀플릿을 불러 물어보고, 고치고, 새 화면이나 지표를 더할 수 있습니다. 프로젝트가 끝나도 쓰는 동안 계속 함께합니다."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "요금은 얼마인가요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Free 플랜은 무료이며 프로젝트 1개를 만들 수 있고, 산출물은 7일 동안 배포·활용할 수 있습니다. Starter 플랜은 월 29,000원이며 프로젝트 개수 제한 없이 만들 수 있고, Pro 플랜은 월 59,000원으로 한 달에 함께 만들고 운영할 수 있는 만큼이 Starter의 두 배입니다. 이번 달에 함께할 수 있는 만큼보다 큰 작업은 다음 달로 이어서 하거나, 20,000원 추가 결제로 이번 것만 더 할 수 있습니다."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "언제부터 쓸 수 있나요?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "2026년 하반기에 출시할 예정입니다."
+          "@type": "Offer",
+          "name": "학교·기관",
+          "price": "250000",
+          "priceCurrency": "KRW",
+          "description": "1인 기준·부가세 별도. 12주·프로젝트 10개·한 기수 20명부터.",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "250000",
+            "priceCurrency": "KRW",
+            "valueAddedTaxIncluded": false
           }
         }
       ]
