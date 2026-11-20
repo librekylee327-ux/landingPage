@@ -118,13 +118,13 @@
 </script>
 <!-- 여기부터 시안(marketing/landing/hero_draft.html)에서 옮긴 부분 — to_site.py가 다시 쓴다 -->
 <script>
-  /* 다 받기 전에는 로고 로더만 — 빈 화면을 스크롤하지 않게 잠근다 */
-  document.documentElement.classList.add('is-loading');
+  /* 사원증을 다 받기 전에는 그 자리에 로고 로더 — 글자는 바로 보이고 스크롤도 막지 않는다. 학교·기관·만드는 사람들로 바로 들어오면 띄우지 않는다 */
+  if (!/\/(institution|team)(\.html)?$/.test(location.pathname) && !/^#(institution|team)$/.test(location.hash)) document.documentElement.classList.add('is-loading');
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" id="mono-css" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <style>
   [hidden] { display: none !important; }
   img { max-width: 100%; }
@@ -154,11 +154,10 @@
   html, body { background: var(--wall); overscroll-behavior: none; }
   /* 섹션마다 길이가 달라도 스크롤바 자리를 늘 잡아 둔다 — 서비스↔기관 전환 때 화면이 좌우로 밀리지 않게 */
   html { overflow-y: scroll; scrollbar-gutter: stable; }
-  html.is-loading { overflow: hidden; }
 
   /* 로고 로더 — 받은 만큼 로고가 채워지고, 다 받으면 걷히며 사원증이 떨어진다 */
   .loader { display: none; }
-  .is-loading .loader, .loader.out { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--wall); }
+  .is-loading .loader, .loader.out { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; pointer-events: none; }
   .loader.out { opacity: 0; transition: opacity .32s ease; pointer-events: none; }
   .loader .mark { position: relative; width: clamp(132px, 12vw, 176px); aspect-ratio: 266 / 51; }
   .loader .base, .loader .fill { position: absolute; inset: 0; display: block; }
@@ -190,16 +189,17 @@
   .logo { display: block; height: 18px; width: auto; }
   .logo-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; }
   .gnb nav { display: flex; gap: 20px; }
-  .gnb nav button, .gnb-mobile-nav button {
+  .gnb nav a, .gnb-mobile-nav a {
     font: 400 14px/1 var(--sans);
+    text-decoration: none;
     color: var(--ink-3);
     background: none;
     border: 0;
     padding: 6px 0;
     cursor: pointer;
   }
-  .gnb nav button[aria-current="page"], .gnb-mobile-nav button[aria-current="page"] { color: var(--ink); }
-  .gnb nav button:hover { color: var(--ink); }
+  .gnb nav a[aria-current="page"], .gnb-mobile-nav a[aria-current="page"] { color: var(--ink); }
+  .gnb nav a:hover { color: var(--ink); }
   .gnb-mobile-nav { display: none; gap: 16px; padding: 0 var(--gutter) 8px; }
   .cta {
     font: 500 14px/1 var(--sans);
@@ -234,6 +234,7 @@
     z-index: 2;
     pointer-events: none;
     display: block;
+    visibility: hidden;   /* 첫 배치 전에는 숨긴다 — 자리를 잡으며 움직이는 것이 화면 밀림으로 잡히지 않게 */
   }
   .probe { position: absolute; visibility: hidden; width: var(--cw); height: var(--ly); }
 
@@ -350,7 +351,7 @@
   .proj b { font-size: 16px; font-weight: 700; line-height: 1.4; letter-spacing: -0.015em; word-break: keep-all; }
   .proj span { font-size: 13px; line-height: 1.5; color: var(--ink-3); word-break: keep-all; }
   .proj li.first { border-color: var(--ink); }
-  .proj li.locked { filter: blur(6px); opacity: 0.75; user-select: none; pointer-events: none; }   /* 1번 말고는 아직 공개하지 않는다 */
+  .proj li.locked { filter: blur(7px); user-select: none; pointer-events: none; }   /* 1번 말고는 아직 공개하지 않는다 */
   .proj .steps { grid-column: 2; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
   .proj .steps i { font-style: normal; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: #f3f4f6; color: var(--ink-2); }
 
@@ -361,7 +362,7 @@
   .grow span { font-size: 16px; line-height: 1.65; color: var(--ink-2); word-break: keep-all; }
   .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--col-gap); }
   .stat { display: grid; gap: 10px; align-content: start; padding: clamp(22px, 2.4vw, 32px); border-radius: 20px; background: #f3f4f6; }
-  .stat small { font-size: 14px; font-weight: 600; color: var(--ink-3); }
+  .stat small { font-size: 14px; font-weight: 600; color: var(--ink-2); }
   .stat strong { white-space: nowrap; font-size: clamp(32px, 3vw, 46px); font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
   .stat span { font-size: 15px; line-height: 1.6; color: var(--ink-2); word-break: keep-all; }
 
@@ -377,7 +378,7 @@
   .plan ul { margin: 8px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); list-style: none; display: grid; gap: 10px; align-content: start; }
   .plan li { position: relative; padding-left: 14px; font-size: 14px; line-height: 1.6; color: var(--ink-2); word-break: keep-all; }
   .plan li::before { content: "·"; position: absolute; left: 2px; font-weight: 700; }
-  .plan .go { justify-self: start; margin-top: 8px; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--ink); padding: 0 0 2px; cursor: pointer; }
+  .plan .go { justify-self: start; margin-top: 8px; text-decoration: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--ink); padding: 0 0 2px; cursor: pointer; }
 
   /* 얼리 액세스 */
   .early { justify-items: start; }
@@ -505,7 +506,7 @@
 
 <header class="gnb">
   <div class="gnb-left">
-    <button type="button" class="logo-btn" data-go="service" aria-label="팀플릿 서비스 홈">
+    <a href="/" class="logo-btn" data-go="service" aria-label="팀플릿 서비스 홈">
     <svg class="logo" viewBox="0 0 266 51" aria-hidden="true">
       <path d="M237.23 39.5998C231.246 39.5998 228.65 37.5758 228.65 32.6918V20.4598C228.65 15.2678 231.598 12.3198 237.01 12.3198H246.25C251.662 12.3198 254.61 14.8278 254.61 20.0198V21.3398C254.61 26.3118 252.102 28.5998 246.69 28.5998H233.93V32.5598C233.93 34.2758 234.458 34.7598 236.57 34.7598H254.082V39.5998H237.23ZM246.294 23.7598C248.494 23.7598 249.33 22.5718 249.33 20.4598C249.33 18.3478 248.494 17.1598 246.294 17.1598H236.79C234.634 17.1598 233.93 17.8638 233.93 19.7998V23.7598H246.294Z" fill="#111827"/>
       <path d="M216.767 39.5999C210.871 39.5999 207.747 36.6519 207.747 30.7999V17.1599H201.367V12.3199H207.747V4.3999H213.027V12.3199H225.567V17.1599H213.027V30.7999C213.027 34.0559 214.567 34.7599 218.087 34.7599H225.567V39.5999H216.767Z" fill="#111827"/>
@@ -518,23 +519,23 @@
       <path d="M15.4 39.5999C9.504 39.5999 6.38 36.6519 6.38 30.7999V17.1599H0V12.3199H6.38V4.3999H11.66V12.3199H24.2V17.1599H11.66V30.7999C11.66 34.0559 13.2 34.7599 16.72 34.7599H24.2V39.5999H15.4Z" fill="#111827"/>
       <rect x="260" y="34" width="6" height="6" rx="1" fill="#0158FD"/>
     </svg>
-    </button>
+    </a>
     <nav aria-label="섹션">
-      <button type="button" data-go="service" aria-current="page">서비스</button>
-      <button type="button" data-go="institution">학교·기관</button>
-      <button type="button" data-go="team">만드는 사람들</button>
+      <a href="/" data-go="service" aria-current="page">서비스</a>
+      <a href="/institution" data-go="institution">학교·기관</a>
+      <a href="/team" data-go="team">만드는 사람들</a>
     </nav>
   </div>
   <button type="button" class="cta" id="gnb-cta">출시 소식 받기</button>
 </header>
 <div class="gnb-mobile-nav">
-  <button type="button" data-go="service" aria-current="page">서비스</button>
-  <button type="button" data-go="institution">학교·기관</button>
-  <button type="button" data-go="team">만드는 사람들</button>
+  <a href="/" data-go="service" aria-current="page">서비스</a>
+  <a href="/institution" data-go="institution">학교·기관</a>
+  <a href="/team" data-go="team">만드는 사람들</a>
 </div>
 
 <main>
-  <section id="service" data-section>
+  <section id="service" data-title="팀플릿 | 내 결정이 옆 직무를 움직이는 마케터 실무 연습" data-section>
     <div class="hero" id="hero">
       <div class="probe" id="probe"></div>
       <canvas id="stage" aria-hidden="true"></canvas>
@@ -551,6 +552,7 @@
       </div>
       <p class="corner corner-right">진짜 사원증 전에, 여기서 먼저 출근해 봐요</p>
 
+      <p class="sr">사원증 뒷면 — 옆 직무를 알아야 내 일도 끝나요. AI가 가장 많이 막히는 곳도 보통 옆 직무가 아는 제약이에요. 여기서는 기획·디자인·개발·데이터 에이전트가 자기 입장을 들고 부딪쳐 와요. 정하는 건 나예요. 남는 것은 옆 직무의 입장을 결정에 넣어 AI에게 일을 맡기는 힘. 틀려도 잃는 건 없어요.</p>
       <h1 class="headline">부딪히고, 틀리고,<span class="br"><br></span> 결과를 바꿔요</h1>
     </div>
 
@@ -682,7 +684,7 @@
             <p class="price"><strong>도입 문의</strong></p>
             <p class="unit">12주 · 프로젝트 10개 · 한 기수 20명부터</p>
             <ul><li>학교·기관으로 들어오면 나는 내지 않아요</li><li>끝낸 프로젝트를 다른 결정으로 다시 해 봐요</li><li>같은 기수가 내린 결정을 재료로 내 결정을 돌아봐요</li></ul>
-            <button type="button" class="go" data-go="institution">학교·기관 안내 보기</button>
+            <a href="/institution" class="go" data-go="institution">학교·기관 안내 보기</a>
           </article>
         </div>
         <p class="note">출시 가격은 얼리 액세스를 거쳐 확정해요.</p>
@@ -709,7 +711,7 @@
     </div>
   </section>
 
-  <section id="institution" data-section hidden>
+  <section id="institution" data-title="팀플릿 학교·기관 | 12주 동안 네 직무와 마케터 실무 프로젝트 10개" data-section hidden>
     <div class="svc">
       <section class="blk" aria-labelledby="h-inst">
         <div class="blk-head">
@@ -804,7 +806,7 @@
     </div>
   </section>
 
-  <section id="team" data-section hidden>
+  <section id="team" data-title="팀플릿 만드는 사람들 | 막혀 본 곳마다 장치를 두었어요" data-section hidden>
     <div class="svc">
       <section class="blk" aria-labelledby="h-team">
         <div class="blk-head">
@@ -831,9 +833,9 @@
   <nav class="foot-col nav" aria-labelledby="foot-nav">
     <h2 id="foot-nav">둘러보기</h2>
     <ul>
-      <li><button type="button" data-go="service">서비스</button></li>
-      <li><button type="button" data-go="institution">학교·기관</button></li>
-      <li><button type="button" data-go="team">만드는 사람들</button></li>
+      <li><a href="/" data-go="service">서비스</a></li>
+      <li><a href="/institution" data-go="institution">학교·기관</a></li>
+      <li><a href="/team" data-go="team">만드는 사람들</a></li>
       <li><button type="button" class="to-early">얼리 액세스 신청</button></li>
     </ul>
   </nav>
@@ -866,9 +868,9 @@
 </footer>
 
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
   var hero = document.getElementById('hero');
   var canvas = document.getElementById('stage');
@@ -878,21 +880,30 @@
   /* ── 섹션 전환 — 새 창·페이지 이동 없이 본문만 바뀐다 ── */
   var sections = document.querySelectorAll('[data-section]');
   var navBtns = document.querySelectorAll('[data-go]');
+  var PATH = { service: '/', institution: '/institution', team: '/team' };
+  function fromUrl() {
+    var m = location.pathname.match(/\/(institution|team)(\.html)?$/) || location.hash.match(/^#(institution|team)$/);
+    return m ? m[1] : 'service';
+  }
   function show(id, push) {
-    sections.forEach(function (s) { s.hidden = s.id !== id; });
+    sections.forEach(function (s) { s.hidden = s.id !== id; if (s.id === id) document.title = s.dataset.title; });
     navBtns.forEach(function (b) {
       if (b.dataset.go === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    if (push) { try { history.replaceState(null, '', id === 'service' ? location.pathname + location.search : '#' + id); } catch (e) {} }
+    if (push && /^https?:$/.test(location.protocol)) { try { history.pushState(null, '', PATH[id] + location.search); } catch (e) {} }
     window.scrollTo(0, 0);
     if (id === 'service' && window.__badgeResize) window.__badgeResize();
   }
-  navBtns.forEach(function (b) { b.addEventListener('click', function () {
+  navBtns.forEach(function (b) { b.addEventListener('click', function (e) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;   // 새 탭으로 열기는 그대로
+    e.preventDefault();
     if (typeof gtag === 'function') gtag('event', 'section_view', { section: b.dataset.go });
     show(b.dataset.go, true);
   }); });
-  var startHash = (location.hash || '').slice(1);
-  if (startHash === 'institution' || startHash === 'team') show(startHash, false);
+  var start = fromUrl();
+  if (start !== 'service') show(start, false);
+  if (/^#(institution|team)$/.test(location.hash) && /^https?:$/.test(location.protocol)) { try { history.replaceState(null, '', PATH[start] + location.search); } catch (e) {} }   // 옛 #주소는 새 주소로
+  window.addEventListener('popstate', function () { show(fromUrl(), false); });
 
   if (!window.THREE) { window.tpLoaded(); return; }
   var T = window.THREE;
@@ -1185,7 +1196,7 @@
     var hr = hero.getBoundingClientRect();
     if (!hr.width || !hr.height) return;
     var above = hero.offsetTop;
-    canvas.style.top = -above + 'px'; canvas.style.height = (hr.height + above) + 'px';
+    canvas.style.top = -above + 'px'; canvas.style.height = (hr.height + above) + 'px'; canvas.style.visibility = 'visible';
     view.above = above; view.W = hr.width; view.H = hr.height + above;
     renderer.setSize(view.W, view.H, false);
     var cwPx = probe.offsetWidth, lyPx = probe.offsetHeight;
@@ -1343,7 +1354,8 @@
   var loaded = new Promise(function (r) { if (document.readyState === 'complete') r(); else window.addEventListener('load', r, { once: true }); });
   var fontsReady = document.fonts ? Promise.all([
     document.fonts.load('600 80px "Pretendard"', glyphs),
-    document.fonts.load('500 38px "IBM Plex Mono"', '0123456789.-TPEMPLOYEIDBACK')
+    new Promise(function (r) { var l = document.getElementById('mono-css'); if (l.media === 'all') r(); else { l.addEventListener('load', r); l.addEventListener('error', r); } })
+      .then(function () { return document.fonts.load('500 38px "IBM Plex Mono"', '0123456789.-TPEMPLOYEIDBACK'); })
   ]).catch(function () {}) : Promise.resolve();
   var booted = false, lockUntilCaught = false;
   function unlockScroll() { lockUntilCaught = false; window.tpUnlock(); }
@@ -1423,7 +1435,7 @@
   nameIn.addEventListener('input', onInput); coIn.addEventListener('input', onInput);
   form.addEventListener('submit', function (e) { e.preventDefault(); flipped = false; psTarget = 0; drop(); kick(); });
 
-})();
+});
 </script>
 </body>
 </html>

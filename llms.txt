@@ -12,8 +12,8 @@
 ## 페이지
 
 - [홈](https://www.teamplate.co.kr/): 서비스 소개, 프로젝트 구성, 가격, 얼리 액세스 신청
-- [학교·기관](https://www.teamplate.co.kr/#institution): 12주 경로, 학생이 겪는 것, 무엇이 남나, 자주 묻는 것, 도입 문의
-- [만드는 사람들](https://www.teamplate.co.kr/#team): 팀
+- [학교·기관](https://www.teamplate.co.kr/institution): 12주 경로, 학생이 겪는 것, 무엇이 남나, 자주 묻는 것, 도입 문의
+- [만드는 사람들](https://www.teamplate.co.kr/team): 팀
 - [개인정보 처리방침](https://www.teamplate.co.kr/privacy.html)
 
 ## 공식 계정
