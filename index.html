@@ -151,7 +151,7 @@
     --title-top: calc(var(--badge-bottom) + var(--lift) - var(--hs) * 0.3);
   }
 
-  html, body { background: var(--wall); }
+  html, body { background: var(--wall); overscroll-behavior: none; }
   /* 섹션마다 길이가 달라도 스크롤바 자리를 늘 잡아 둔다 — 서비스↔기관 전환 때 화면이 좌우로 밀리지 않게 */
   html { overflow-y: scroll; scrollbar-gutter: stable; }
   html.is-loading { overflow: hidden; }
@@ -188,6 +188,7 @@
   }
   .gnb-left { display: flex; align-items: center; gap: 28px; }
   .logo { display: block; height: 18px; width: auto; }
+  .logo-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; }
   .gnb nav { display: flex; gap: 20px; }
   .gnb nav button, .gnb-mobile-nav button {
     font: 400 14px/1 var(--sans);
@@ -504,7 +505,8 @@
 
 <header class="gnb">
   <div class="gnb-left">
-    <svg class="logo" viewBox="0 0 266 51" role="img" aria-label="teamplate">
+    <button type="button" class="logo-btn" data-go="service" aria-label="팀플릿 서비스 홈">
+    <svg class="logo" viewBox="0 0 266 51" aria-hidden="true">
       <path d="M237.23 39.5998C231.246 39.5998 228.65 37.5758 228.65 32.6918V20.4598C228.65 15.2678 231.598 12.3198 237.01 12.3198H246.25C251.662 12.3198 254.61 14.8278 254.61 20.0198V21.3398C254.61 26.3118 252.102 28.5998 246.69 28.5998H233.93V32.5598C233.93 34.2758 234.458 34.7598 236.57 34.7598H254.082V39.5998H237.23ZM246.294 23.7598C248.494 23.7598 249.33 22.5718 249.33 20.4598C249.33 18.3478 248.494 17.1598 246.294 17.1598H236.79C234.634 17.1598 233.93 17.8638 233.93 19.7998V23.7598H246.294Z" fill="#111827"/>
       <path d="M216.767 39.5999C210.871 39.5999 207.747 36.6519 207.747 30.7999V17.1599H201.367V12.3199H207.747V4.3999H213.027V12.3199H225.567V17.1599H213.027V30.7999C213.027 34.0559 214.567 34.7599 218.087 34.7599H225.567V39.5999H216.767Z" fill="#111827"/>
       <path d="M180.927 39.5998C175.515 39.5998 172.567 36.9158 172.567 31.8998V30.8878C172.567 25.4758 175.075 22.6158 180.487 22.6158H193.247V19.7998C193.247 18.0838 192.103 17.1598 190.387 17.1598H174.855V12.3198H190.167C196.151 12.3198 198.527 14.1238 198.527 19.0078V35.5518C198.527 37.6638 196.767 39.5998 194.171 39.5998H180.927ZM191.267 34.7598C192.939 34.7598 193.247 34.2758 193.247 32.9998V27.4558H180.927C178.375 27.4558 177.407 28.4678 177.407 31.1078C177.407 33.7478 178.375 34.7598 180.927 34.7598H191.267Z" fill="#111827"/>
@@ -516,6 +518,7 @@
       <path d="M15.4 39.5999C9.504 39.5999 6.38 36.6519 6.38 30.7999V17.1599H0V12.3199H6.38V4.3999H11.66V12.3199H24.2V17.1599H11.66V30.7999C11.66 34.0559 13.2 34.7599 16.72 34.7599H24.2V39.5999H15.4Z" fill="#111827"/>
       <rect x="260" y="34" width="6" height="6" rx="1" fill="#0158FD"/>
     </svg>
+    </button>
     <nav aria-label="섹션">
       <button type="button" data-go="service" aria-current="page">서비스</button>
       <button type="button" data-go="institution">학교·기관</button>
