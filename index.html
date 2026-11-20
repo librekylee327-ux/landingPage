@@ -879,7 +879,7 @@
     navBtns.forEach(function (b) {
       if (b.dataset.go === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    if (push) { try { history.replaceState(null, '', id === 'service' ? '#' : '#' + id); } catch (e) {} }
+    if (push) { try { history.replaceState(null, '', id === 'service' ? location.pathname + location.search : '#' + id); } catch (e) {} }
     window.scrollTo(0, 0);
     if (id === 'service' && window.__badgeResize) window.__badgeResize();
   }
