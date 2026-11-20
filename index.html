@@ -210,7 +210,7 @@
     white-space: nowrap;
   }
   .cta:hover { background: var(--brand-hover); }
-  button:focus-visible, input:focus-visible, summary:focus-visible, .link:focus-visible {
+  button:focus-visible, input[type="checkbox"]:focus-visible, summary:focus-visible, .link:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 3px;
   }
@@ -383,6 +383,7 @@
   .apply-row { display: flex; gap: 10px; }
   .apply-fields { display: grid; gap: 10px; }
   .apply input[type="email"], .apply input[type="text"] { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  .apply input[type="email"]:focus, .apply input[type="text"]:focus { outline: none; border-color: var(--brand); }
   .apply .cta { font-size: 16px; padding: 14px 22px; white-space: nowrap; }
   .apply > .cta { justify-self: start; }
   .apply label.agree { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
